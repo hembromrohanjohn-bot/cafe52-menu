@@ -4,17 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Café 52</title>
+<meta name="description" content="Café 52, Camp, Pune: shawarma, rolls, burgers, pizza and shakes. Order from your table.">
 <meta name="theme-color" content="#8E0F22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="cart/cart.css?v=20260929a">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap">
 <style>
 /* ============================================================
-   CAFÉ 52 — menu book
+   CAFÉ 52 — menu
    Colours: crimson red, golden yellow, slate grey. Prices in white.
-   Fonts: Anton (Boldine-style heavy capitals) for the wordmark, titles,
-          dish names and prices; Lora italic for small print; Inter for fields.
+   Fonts: Anton (Boldine-style heavy capitals) for the wordmark, titles, tabs and prices;
+          Inter for dish names and controls; Lora italic for small print.
    The same palette is used in light and dark mode.
    ============================================================ */
 :root {
@@ -24,11 +25,12 @@
   --gold: #F2BD2C;
   --gold-deep: #C9960E;
   --slate: #2A323C;          /* the page */
-  --slate-deep: #1A1F26;     /* behind the book */
-  --slate-2: #343E4A;        /* fields, boxes */
+  --slate-deep: #1A1F26;     /* behind the page, sticky bar */
+  --card: #313A45;           /* section cards */
+  --card-2: #3A4552;         /* fields, hover */
   --ink: #FFFFFF;            /* dish names, prices */
-  --ink-soft: #B4BEC9;
-  --line: #4A5663;
+  --ink-soft: #AEB8C4;
+  --line: #414C59;
   --veg: #2E9E44;
   --nonveg: #C0182F;
   --display: "Anton", Impact, "Arial Narrow", sans-serif;
@@ -41,114 +43,141 @@
 :root[data-theme="dark"] { --slate: #2A323C; --ink: #FFFFFF; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-padding-top: 170px; }
+html { scroll-padding-top: 190px; }
 body { margin: 0; background: var(--slate-deep); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 button, input { font: inherit; color: inherit; }
-:focus-visible { outline: 2.5px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2.5px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .book { max-width: 620px; margin-inline: auto; background: var(--slate); min-height: 100vh; box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 20px 60px rgba(0,0,0,.5); }
 
 /* ---------- cover ---------- */
-.tiles { height: 34px; background: var(--tile) 0 0 / 34px 34px; border-bottom: 3px solid var(--gold); }
+.tiles { height: 26px; background: var(--tile) 0 0 / 26px 26px; border-bottom: 3px solid var(--gold); }
 .cover {
-  background: var(--crimson); color: var(--gold); padding: 30px 20px 26px; text-align: center; display: grid; justify-items: center; gap: 8px;
-  background-image: radial-gradient(ellipse at 50% 0%, rgba(255,210,120,.2), transparent 65%), linear-gradient(180deg, var(--crimson), var(--crimson-deep));
+  position: relative; overflow: hidden; padding: 34px 22px 26px; text-align: center;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 0%, rgba(255,200,110,.22), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(0,0,0,.05) 0 2px, transparent 2px 14px),
+    linear-gradient(180deg, var(--crimson), var(--crimson-deep));
   border-bottom: 5px solid var(--gold);
 }
-.wordmark { font-family: var(--display); font-weight: 400; font-size: 84px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; margin: 2px 0 0; text-shadow: 0 3px 0 rgba(0,0,0,.25); }
-.cover .kicker { font-family: var(--display); font-size: 14px; letter-spacing: .22em; text-transform: uppercase; display: flex; gap: 10px; align-items: center; color: #FFE3A6; white-space: nowrap; }
-.cover .kicker i { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); display: inline-block; }
-.cover .line { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 17px; line-height: 1.35; max-width: 30ch; text-wrap: balance; color: #FFE9EC; margin-top: 2px; }
-.cover .facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-family: var(--display); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: #FFE3A6; }
-.cover .facts a { color: var(--gold); text-decoration: none; }
-.cover .facts span + span::before, .cover .facts a::before { content: "✦"; margin-right: 14px; color: var(--gold); font-size: 11px; vertical-align: 2px; }
+/* big faded "52" behind the name */
+.cover::before {
+  content: "52"; position: absolute; right: -18px; bottom: -64px; font: 400 250px/1 var(--display);
+  color: rgba(0,0,0,.13); pointer-events: none; letter-spacing: -.02em;
+}
+.cover > * { position: relative; }
+.kicker { margin: 0; font: 400 13px var(--display); letter-spacing: .32em; text-transform: uppercase; color: #FFD9A0; }
+.wordmark { margin: 6px 0 0; font: 400 86px/.95 var(--display); letter-spacing: .01em; text-transform: uppercase; color: var(--gold); text-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.line { margin: 10px auto 0; max-width: 28ch; font: italic 500 18px/1.35 var(--serif); color: #FFE9EC; text-wrap: balance; }
+.cover-actions { display: flex; justify-content: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.cbtn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; text-decoration: none;
+  font: 400 15px var(--display); letter-spacing: .12em; text-transform: uppercase;
+  background: rgba(0,0,0,.22); color: #fff; border: 1.5px solid rgba(242,189,44,.65);
+}
+.cbtn:hover { background: rgba(0,0,0,.32); }
+.cbtn svg { color: var(--gold); }
+.addr { margin: 12px 0 0; font-size: 13px; color: #FFD5DB; letter-spacing: .01em; }
 
 /* ---------- sticky controls ---------- */
-.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--slate); border-bottom: 1px solid var(--line); box-shadow: inset 0 3px 0 var(--accent, var(--crimson)); }
-.table-strip { padding: 7px 16px 6px; background: var(--crimson); color: var(--gold); text-align: center; font-family: var(--display); font-size: 16px; letter-spacing: .2em; text-transform: uppercase; border-bottom: 2px solid var(--gold); }
-.bar-top { display: flex; align-items: center; gap: 8px; padding: 14px 16px 8px; flex-wrap: wrap; }
-.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
-.tabs button { border: 0; background: none; cursor: pointer; padding: 6px 13px; border-radius: 999px; font-family: var(--display); font-size: 16px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
-.tabs button[aria-selected="true"] { background: var(--crimson); color: #fff; box-shadow: inset 0 -2px 0 var(--gold); }
-/* Veg | Non-veg: tap one to filter, tap it again to show everything */
-.diet { margin-left: auto; display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
-.diet button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; cursor: pointer; padding: 6px 10px; border-radius: 999px; font-family: var(--display); font-size: 15px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
-.diet button[aria-pressed="true"][data-diet="veg"] { background: var(--veg); color: #fff; }
-.diet button[aria-pressed="true"][data-diet="nonveg"] { background: var(--crimson); color: #fff; }
-.search { padding: 0 16px 10px; }
-.search input { width: 100%; font: 500 16px var(--sans); color: var(--ink); background: var(--slate-2); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 13px; }
-.search input::placeholder { color: var(--ink-soft); font-style: italic; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--slate-deep) 96%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.table-strip { padding: 7px 16px; background: var(--gold); color: var(--slate-deep); text-align: center; font: 400 15px var(--display); letter-spacing: .2em; text-transform: uppercase; }
+.table-strip::before { content: "Ordering for  ·  "; white-space: pre; opacity: .7; }
+.bar-in { padding: 12px 16px 0; display: grid; gap: 10px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--slate); border: 1px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.tabs button { border: 0; background: none; cursor: pointer; min-height: 40px; border-radius: 10px; font: 400 17px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.tabs button:hover { color: #fff; }
+.tabs button[aria-selected="true"] { background: var(--crimson); color: #fff; box-shadow: inset 0 -3px 0 var(--gold); }
+.row2 { display: flex; gap: 8px; }
+.search { flex: 1; min-width: 0; position: relative; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; }
+.search input { width: 100%; min-height: 44px; font: 500 16px var(--sans); color: var(--ink); background: var(--slate); border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 12px 9px 38px; }
+.search input::placeholder { color: var(--ink-soft); }
 .search input:focus { outline: none; border-color: var(--gold); }
-.chips { display: flex; gap: 22px; overflow-x: auto; padding: 0 20px; scrollbar-width: none; }
+/* Veg | Non-veg: tap one to filter, tap it again to show everything */
+.diet { display: flex; gap: 6px; }
+.diet button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 12px; border-radius: 12px; cursor: pointer; background: var(--slate); border: 1.5px solid var(--line); font: 600 13px var(--sans); color: var(--ink); white-space: nowrap; }
+.diet button[aria-pressed="true"][data-diet="veg"] { background: var(--veg); border-color: var(--veg); }
+.diet button[aria-pressed="true"][data-diet="nonveg"] { background: var(--crimson); border-color: var(--crimson); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 12px; margin: 0 -16px; scrollbar-width: none; scroll-padding-inline: 16px; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; border: 0; background: none; cursor: pointer; padding: 8px 0 9px; font-family: var(--display); font-size: 18px; letter-spacing: .05em; text-transform: uppercase; line-height: 1.1; white-space: nowrap; color: var(--ink); opacity: .5; border-bottom: 3px solid transparent; transition: opacity .2s, border-color .2s; }
-.chip:hover { opacity: .8; }
-.chip.on { opacity: 1; color: var(--gold); border-bottom-color: var(--crimson); }
+.chip { flex: none; cursor: pointer; padding: 7px 14px; border-radius: 999px; background: transparent; border: 1.5px solid var(--line); font: 600 13.5px var(--sans); white-space: nowrap; color: var(--ink-soft); transition: background .2s, color .2s, border-color .2s; }
+.chip:hover { color: #fff; border-color: var(--ink-soft); }
+.chip.on { background: var(--gold); border-color: var(--gold); color: var(--slate-deep); }
+.chip small { margin-left: 5px; font-weight: 500; opacity: .7; }
 
 /* ---------- diet marks & tags ---------- */
-.mark { display: inline-block; flex: none; width: 13px; height: 13px; border: 1.5px solid currentColor; border-radius: 2px; background: #fff; position: relative; vertical-align: -1px; }
+.mark { display: inline-block; flex: none; width: 14px; height: 14px; border: 1.5px solid currentColor; border-radius: 3px; background: #fff; position: relative; }
 .mark::after { content: ""; position: absolute; inset: 0; margin: auto; }
 .mark.veg { color: var(--veg); }
-.mark.veg::after { width: 5.5px; height: 5.5px; border-radius: 50%; background: currentColor; }
+.mark.veg::after { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .mark.nonveg { color: var(--nonveg); }
-.mark.nonveg::after { width: 0; height: 0; border-left: 3.5px solid transparent; border-right: 3.5px solid transparent; border-bottom: 6px solid currentColor; }
+.mark.nonveg::after { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 7px solid currentColor; }
 .diet button[aria-pressed="true"] .mark { border-color: #fff; }
-.tag { font-family: var(--display); font-size: 11px; letter-spacing: .12em; padding: 1px 6px; border-radius: 999px; border: 1px solid; line-height: 1.4; }
+.tag { display: inline-block; font: 400 10.5px var(--display); letter-spacing: .12em; padding: 1px 7px; border-radius: 999px; border: 1px solid; line-height: 1.5; }
 .tag.egg { color: var(--gold); border-color: var(--gold-deep); background: rgba(242,189,44,.12); }
 
-/* ---------- pages ---------- */
-.pages { padding: 4px 20px 34px; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-soft); padding: 16px 0 0; align-items: center; font-family: var(--serif); font-style: italic; }
-.legend > span { display: inline-flex; align-items: center; gap: 6px; }
-section.sec { padding-top: 34px; }
-.sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.sec-head h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1.1; letter-spacing: .03em; text-transform: uppercase; color: var(--gold); }
-.sec-head .count { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink-soft); }
-.sec-head::after { content: ""; flex: 1 1 40px; height: 2px; background: var(--crimson); align-self: center; }
-.item { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; padding: 13px 0; border-bottom: 1px dashed var(--line); }
-.item:last-child { border-bottom: 0; }
-.item h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 19px; letter-spacing: .04em; text-transform: uppercase; line-height: 1.45; color: var(--ink); }
-.item h3 > .mark { margin-right: 8px; vertical-align: -1px; }
-.item h3 > .tag { display: inline-block; margin-left: 7px; vertical-align: 2px; }
-.item .no { font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0; color: var(--gold); margin-right: 6px; vertical-align: 2px; font-variant-numeric: tabular-nums; }
-.item .price { font-family: var(--display); font-size: 20px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; letter-spacing: .04em; color: #fff; }
+/* ---------- menu ---------- */
+.pages { padding: 6px 14px 30px; }
+section.sec { margin-top: 22px; background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(0,0,0,.18); }
+.sec-head { position: relative; padding: 18px 18px 14px; border-top: 4px solid var(--crimson); background: linear-gradient(180deg, rgba(192,24,47,.16), transparent); }
+.sec-head h2 { margin: 0; font: 400 34px/1.05 var(--display); letter-spacing: .02em; text-transform: uppercase; color: var(--gold); }
+.sec-head p { margin: 5px 0 0; font: italic 500 15px/1.4 var(--serif); color: var(--ink-soft); padding-right: 56px; }
+.sec-head .count { position: absolute; top: 20px; right: 18px; min-width: 38px; height: 26px; padding: 0 9px; border-radius: 999px; display: grid; place-items: center; background: rgba(242,189,44,.14); color: var(--gold); font: 700 12px var(--sans); }
+.grp-h { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 18px 8px; font: 700 12px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); background: rgba(0,0,0,.12); border-top: 1px solid var(--line); }
+.grp-h span { margin-left: auto; font-weight: 500; letter-spacing: .04em; opacity: .8; text-transform: none; }
+.item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px 12px; padding: 12px 14px 12px 18px; border-top: 1px solid var(--line); }
+.grp-h + .item, .sec-head + .item { border-top: 0; }
+.item:hover { background: rgba(255,255,255,.025); }
+.nm { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.nm .mark { margin-top: 3px; }
+.nm .t { font: 600 15.5px/1.35 var(--sans); color: var(--ink); }
+.nm .no { display: block; margin-top: 2px; font: 500 12px var(--sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.nm .tag { margin-left: 6px; vertical-align: 1px; }
+.item .price { font: 400 19px var(--display); letter-spacing: .04em; font-variant-numeric: tabular-nums; white-space: nowrap; color: #fff; text-align: right; }
 .item .price::before { content: "₹"; margin-right: 2px; color: #fff; }
-.extras { margin-top: 20px; border: 1.5px solid var(--crimson); background: var(--slate-2); }
-.extras b { display: block; background: var(--crimson); color: #fff; padding: 7px 12px; font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; border-bottom: 2px solid var(--gold); }
-.extras ul { list-style: none; margin: 0; padding: 6px 12px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0 18px; }
-.extras li { display: flex; align-items: center; gap: 8px; padding: 7px 0; font-family: var(--sans); font-weight: 600; font-size: 14px; border-bottom: 1px dotted var(--line); }
-.extras li span.n { flex: 1; }
-.extras li span.p { font-family: var(--display); font-weight: 400; font-size: 16px; font-variant-numeric: tabular-nums; color: #fff; }
-.extras li span.p::before { content: "₹"; margin-right: 1px; }
-.empty { text-align: center; padding: 44px 10px; font-family: var(--display); font-size: 21px; color: var(--ink-soft); letter-spacing: .03em; }
-.empty button { display: block; margin: 14px auto 0; border: 1.5px solid var(--gold); background: none; border-radius: 999px; padding: 8px 18px; min-height: 44px; cursor: pointer; font-family: var(--display); font-size: 15px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.extras-list { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .extras-list { grid-template-columns: 1fr 1fr; column-gap: 0; } .extras-list .item:nth-child(2) { border-top: 0; } .extras-list .item:nth-child(odd) { border-right: 1px solid var(--line); } }
+.empty { text-align: center; padding: 56px 16px; font: 400 22px var(--display); letter-spacing: .03em; color: var(--ink-soft); }
+.empty button { display: block; margin: 16px auto 0; border: 1.5px solid var(--gold); background: none; border-radius: 999px; padding: 8px 20px; min-height: 44px; cursor: pointer; font: 400 15px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
 
-footer { background: var(--crimson-deep); color: #FFE9EC; padding: 24px 20px 30px; text-align: center; font-family: var(--serif); font-style: italic; font-size: 15px; line-height: 1.5; display: grid; gap: 6px; justify-items: center; border-top: 5px solid var(--gold); }
-footer .wordmark { font-size: 46px; color: var(--gold); margin-bottom: 4px; font-style: normal; }
-footer .foot-legend { justify-content: center; color: #FFE9EC; padding-top: 6px; }
+footer { margin-top: 12px; background: var(--crimson-deep); color: #FFE9EC; padding: 26px 20px 32px; text-align: center; font: italic 500 15px/1.5 var(--serif); display: grid; gap: 6px; justify-items: center; border-top: 5px solid var(--gold); }
+footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-shadow: none; }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; padding-top: 8px; font-size: 14px; }
+.legend > span { display: inline-flex; align-items: center; gap: 7px; }
 
-/* ---------- cart (cart/cart.js): match the menu, Add control under the price ---------- */
-:root { --cart-accent: #C0182F; --cart-accent-ink: #FFFFFF; --cart-ink: #FFFFFF; --cart-muted: #B4BEC9; --cart-bg: #2A323C; --cart-line: #4A5663; --cart-font: var(--sans); --cart-font-strong: var(--display); --cart-font-head: var(--display); --cart-font-soft: var(--serif); --cart-max: 620px; }
-.item > .cart-ctl { grid-column: 2; grid-row: 2; justify-self: end; }
-.extras li .cart-add { min-height: 34px; min-width: 64px; padding: 0 10px; font-size: 13px; }
-.extras li .cart-step { min-height: 34px; }
-.extras li .cart-step button { width: 34px; height: 34px; }
-.cart-add { border-color: var(--gold); color: var(--gold); font-weight: 400; }
-.cart-notes textarea, .cart-ask input, .cart-gate-form input { background: #343E4A; color: #fff; }
-.cart-notes textarea::placeholder, .cart-gate-form input::placeholder { color: #B4BEC9; }
+/* ---------- cart (cart/cart.js): compact Add control at the end of each row ---------- */
+:root { --cart-accent: #C0182F; --cart-accent-ink: #FFFFFF; --cart-ink: #FFFFFF; --cart-muted: #AEB8C4; --cart-bg: #2A323C; --cart-line: #414C59; --cart-font: var(--sans); --cart-font-strong: var(--display); --cart-font-head: var(--display); --cart-font-soft: var(--serif); --cart-max: 620px; }
+.item .cart-add { min-height: 36px; min-width: 70px; padding: 0 12px; font-size: 14px; font-weight: 400; border-color: var(--gold); color: var(--gold); }
+.item .cart-add:hover { background: rgba(242,189,44,.12); }
+.item .cart-step { min-height: 36px; box-shadow: inset 0 -2px 0 var(--gold); }
+.item .cart-step button { width: 34px; height: 36px; }
+.cart-bar-btn { border-bottom: 3px solid var(--gold) !important; font-family: var(--display) !important; font-weight: 400 !important; letter-spacing: .08em !important; }
+.cart-bar-cta { color: var(--gold); }
+.cart-notes textarea, .cart-ask input, .cart-gate-form input { background: #3A4552; color: #fff; }
+.cart-notes textarea::placeholder, .cart-gate-form input::placeholder { color: #AEB8C4; }
 .cart-ask, .cart-track { background: rgba(255,255,255,.05); }
-.cart-gate-card h2, .cart-head h2 { color: var(--gold); text-transform: uppercase; letter-spacing: .03em; font-weight: 400; }
+.cart-head h2 { color: var(--gold); text-transform: uppercase; letter-spacing: .03em; font-weight: 400; }
+/* Welcome screen: slate with the tile strip and a crimson glow, instead of a flat colour */
+.cart-gate { background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(192,24,47,.55), transparent 70%), var(--slate-deep) !important; }
+.cart-gate::before { content: ""; position: fixed; inset: 0 0 auto; height: 26px; background: var(--tile) 0 0 / 26px 26px; border-bottom: 3px solid var(--gold); }
+.cart-gate-card { border-top: 5px solid var(--gold); background: var(--slate) !important; }
+.cart-gate-card h2 { color: var(--gold); text-transform: uppercase; letter-spacing: .02em; font-weight: 400; font-size: 52px !important; }
+.cart-gate-card .cart-table-pill { background: var(--gold); color: var(--slate-deep); }
 
 @media (max-width: 420px) {
-  .bar-top { gap: 8px; padding: 12px 12px 8px; }
-  .tabs button { padding: 6px 10px; font-size: 15px; }
-  .diet { margin-left: 0; }
-  .search { padding: 0 12px 10px; }
-  .pages { padding: 4px 16px 34px; }
-  .wordmark { font-size: 68px; }
-  .cover .kicker { font-size: 12px; letter-spacing: .14em; gap: 8px; }
+  .wordmark { font-size: 70px; }
+  .cover::before { font-size: 200px; bottom: -50px; }
+  .bar-in { padding: 10px 12px 0; }
+  .chips { padding: 0 12px 12px; margin: 0 -12px; }
+  .diet button { padding: 0 10px; }
+  .diet .lbl { display: none; }
+  .pages { padding: 4px 10px 26px; }
   .sec-head h2 { font-size: 30px; }
+  .item { padding: 12px 10px 12px 14px; gap: 8px 10px; }
+  .item .cart-add { min-width: 62px; padding: 0 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .chip { transition: none; } }
 </style>
@@ -158,27 +187,33 @@ footer .foot-legend { justify-content: center; color: #FFE9EC; padding-top: 6px;
 <div class="book">
   <div class="tiles" aria-hidden="true"></div>
   <header class="cover">
-    <div class="kicker">Shawarma <i></i> Burgers <i></i> Pizza <i></i> Shakes</div>
+    <p class="kicker">Camp · Pune</p>
     <h1 class="wordmark">Café 52</h1>
-    <div class="line">Kumar Plaza, 8 M.G. Road, Camp, Pune 411001</div>
-    <div class="facts"><span>Veg &amp; Non-veg</span><a href="tel:+918007421786">+91 80074 21786</a></div>
+    <p class="line">Shawarma, rolls, burgers, pizza &amp; shakes</p>
+    <div class="cover-actions">
+      <a class="cbtn" href="tel:+918007421786"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Call</a>
+      <a class="cbtn" href="https://www.google.com/maps/search/?api=1&amp;query=Kumar+Plaza%2C+8+M.G.+Road%2C+Camp%2C+Pune+411001" target="_blank" rel="noopener"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Directions</a>
+    </div>
+    <p class="addr">Kumar Plaza, 8 M.G. Road, Camp, Pune 411001</p>
   </header>
 
   <div class="bar" id="bar">
     <div class="table-strip" data-cart-table hidden></div>
-    <div class="bar-top">
+    <div class="bar-in">
       <div class="tabs" role="tablist" aria-label="Menu">
         <button role="tab" aria-selected="true" data-tab="food">Food</button>
         <button role="tab" aria-selected="false" data-tab="snacks">Snacks</button>
         <button role="tab" aria-selected="false" data-tab="drinks">Drinks</button>
       </div>
-      <div class="diet" role="group" aria-label="Diet">
-        <button type="button" data-diet="veg" aria-pressed="false"><span class="mark veg" aria-hidden="true"></span>Veg</button>
-        <button type="button" data-diet="nonveg" aria-pressed="false"><span class="mark nonveg" aria-hidden="true"></span>Non-veg</button>
+      <div class="row2">
+        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" aria-label="Search the menu" placeholder="Search dishes" autocomplete="off"></label>
+        <div class="diet" role="group" aria-label="Diet">
+          <button type="button" data-diet="veg" aria-pressed="false" aria-label="Veg only"><span class="mark veg" aria-hidden="true"></span><span class="lbl">Veg</span></button>
+          <button type="button" data-diet="nonveg" aria-pressed="false" aria-label="Non-veg only"><span class="mark nonveg" aria-hidden="true"></span><span class="lbl">Non-veg</span></button>
+        </div>
       </div>
+      <nav class="chips" id="chips" aria-label="Sections"></nav>
     </div>
-    <div class="search"><input id="q" type="search" aria-label="Search the menu" placeholder="Search dishes and drinks" autocomplete="off"></div>
-    <nav class="chips" id="chips" aria-label="Sections"></nav>
   </div>
 
   <main class="pages" id="pages"></main>
@@ -188,88 +223,102 @@ footer .foot-legend { justify-content: center; color: #FFE9EC; padding-top: 6px;
     <span class="wordmark">Café 52</span>
     <div>All prices in Indian Rupees (₹).</div>
     <div>Please tell us about any food allergies or dietary needs before ordering.</div>
-    <div class="legend foot-legend"><span><span class="mark veg"></span>Vegetarian</span><span><span class="mark nonveg"></span>Non-vegetarian</span><span><span class="tag egg">EGG</span>Contains egg</span></div>
+    <div class="legend"><span><span class="mark veg"></span>Vegetarian</span><span><span class="mark nonveg"></span>Non-vegetarian</span><span><span class="tag egg">EGG</span>Contains egg</span></div>
   </footer>
 </div>
 
 <script>
 /* ---------- menu data ----------
-   Tab → sections: [title, diet, [[no, name, price, diet?], ...]]
+   Tab → sections: [title, blurb, groups]
+   Group: [label or null, diet, [[no, name, price, diet?], ...]]
    diet: "v" veg · "n" non-veg · "e" contains egg (shown under non-veg with an EGG tag)
-   EXTRAS is shown as a boxed add-on list at the end of the Food tab. */
+   The numbers are the dish numbers on the printed menu; the cart uses them as ids ("item-12"). */
 const MENU = {
 food: [
-  ["Rolls (Chicken)", "n", [
-    [1,"Chicken Shawarma Roll",120],[2,"Chicken Cheese Shawarma Roll",140],[3,"Chicken Shawarma With Hummus",130],
-    [4,"Chicken Shawarma Falafel Roll With Hummus",150],[5,"Chicken Shawarma Roll",160],[6,"Chicken Shawarma Without Salad Roll",170],
-    [7,"Fila Chicken Roll",140],[8,"Fila Chicken Roll Without Salad",160],[9,"Fila Chicken Cheese Roll",160],
-    [10,"Fila Chicken Roll With Egg & Cheese",180],[11,"Angara Roll",130],[12,"Angara Cheese Roll",150],
-    [13,"Angara Roll With Egg & Cheese",170],[14,"Chicken Tikka Roll",130],[15,"Chicken Tikka Cheese Roll",150],
-    [16,"Chicken Tikka Roll With Egg & Cheese",170],[17,"Shish Taouk Roll",130],[18,"Cheese Shish Taouk Roll",150],
-    [19,"Shish Taouk Roll With Egg & Cheese",170]]],
-  ["Rolls (Veg)", "v", [
-    [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[22,"Paneer Cheese Roll",160],[23,"Mix Veg Roll",120],
-    [24,"Mix Veg Roll With Cheese",140],[25,"Falafel Roll",140],[26,"Falafel Cheese Roll",160],[27,"Lebanese Masala Roll",120],
-    [28,"Lebanese Masala Roll With Cheese",140],[29,"Veg Cutlet Roll",120],[30,"Veg Cutlet Roll With Cheese",140],
-    [31,"Hummus Garlic Roll",110],[32,"Hummus Garlic Roll With Cheese",130]]],
-  ["Veg Plate", "v", [
-    [33,"Hummus Plate With 2 Pita Bread",200],[34,"Falafel Plate (4 + 2 Pita Bread) & Hummus",290],[35,"Hummus Falafel Plate",250]]],
-  ["Chicken Shawarma Plate", "n", [
-    [36,"Chicken Shawarma Plate Without Salad",170],[37,"Chicken Shawarma Plate With Salad",200],
-    [38,"Falafel Chicken Plate",320],[39,"Shahan Shawarma Plate",320]]],
-  ["Burger (Chicken)", "n", [
-    [40,"Chicken Burger",100],[41,"Chicken Cheese Burger",120],[42,"Chicken Burger With Egg & Cheese",150],
-    [43,"Chicken Fries Burger",150],[44,"Chicken Fries Cheese Burger",170],[45,"Chicken Crispy Burger",150],
-    [46,"Chicken Crispy Cheese Burger",170],[47,"Chicken Crispy Burger With Egg & Cheese",190],[48,"Chicken Tikka Burger",150],
-    [49,"Chicken Tikka Cheese Burger",170],[50,"Chicken Burger With Egg & Cheese",190]]],
-  ["Burger (Veg)", "v", [
-    [51,"Veg Burger",90],[52,"Veg Cheese Burger",110],[53,"Veg Fries Burger",130],[54,"Veg Fries Cheese Burger",150],
-    [55,"Paneer Burger",140],[56,"Paneer Cheese Burger",160],[57,"Paneer Tikka Burger",160],[58,"Paneer Tikka Cheese Burger",180]]],
-  ["Sandwiches (Non-Veg)", "n", [
-    [59,"Chicken Cheese Grilled Sandwich",110],[60,"Non Veg Club Sandwich",150],[61,"Chicken Tikka Sandwich",140],
-    [62,"Chicken Cutlet Sandwich",140],[63,"Chicken Shawarma Sandwich",140],[64,"Chicken Fila Cheese Sandwich",160],
-    [65,"Chicken Tandoori Cheese Sandwich",160],[66,"Chicken Shish Taouk Cheese Sandwich",160],[67,"Chicken Russian Salad Sandwich",140]]],
-  ["Sandwiches (Veg)", "v", [
-    [68,"Veg Grilled Sandwich",90],[69,"Veg Club Sandwich",130],[70,"Mushroom Mania Sandwich",100],
-    [71,"Corn Cheese Grilled Sandwich",110],[72,"Paneer Cheese Grilled Sandwich",130],[73,"Plain Cheese Sandwich",100],
-    [74,"Bombay Toast",80],[75,"Veg Russian Salad Sandwich",90],[76,"Veg Cutlet Sandwich",120],[77,"Grilled Cheese Sandwich",110]]],
-  ["Pizza (Non-Veg)", "n", [
-    [84,"Chicken Cheese Pizza",150],[85,"Chicken Shawarma Pizza",210],[86,"Tandoori Chicken Pizza",240],
-    [87,"Chicken Tikka Pizza",230],[88,"Classic Chicken Pizza",220]]],
-  ["Pizza (Veg)", "v", [
-    [89,"Veg Pizza",130],[90,"Sweetcorn Pizza",170],[91,"Paneer Cheese Pizza",190],[92,"Cheese Pizza",170],
-    [93,"Veg Special Pizza",160],[94,"Mushroom Cheese Pizza",170]]],
-  ["Chinese (Non-Veg)", "n", [
-    [102,"Chicken Fried Rice",130],[103,"Chicken Schezwan Fried Rice",150],[104,"Chicken Hakka Noodles",130],
-    [105,"Chicken Schezwan Hakka Noodles",150],[106,"Chicken 65",250],[107,"Chicken Chilly Dry",250]]],
-  ["Chinese (Veg)", "v", [
-    [108,"Veg Fried Rice",120],[109,"Veg Schezwan Rice",140],[110,"Veg Paneer Rice",170],[111,"Veg Paneer Schezwan Rice",190],
-    [112,"Veg Hakka Noodles",120],[113,"Veg Schezwan Hakka Noodles",140],[114,"Veg Paneer Hakka Noodles",170],
-    [115,"Veg Paneer Schezwan Hakka Noodles",190]]],
+  ["Rolls", "Shawarma, fila, angara, tikka & shish taouk wraps", [
+    ["Chicken", "n", [
+      [1,"Chicken Shawarma Roll",120],[2,"Chicken Cheese Shawarma Roll",140],[3,"Chicken Shawarma With Hummus",130],
+      [4,"Chicken Shawarma Falafel Roll With Hummus",150],[5,"Chicken Shawarma Roll",160],[6,"Chicken Shawarma Without Salad Roll",170],
+      [7,"Fila Chicken Roll",140],[8,"Fila Chicken Roll Without Salad",160],[9,"Fila Chicken Cheese Roll",160],
+      [10,"Fila Chicken Roll With Egg & Cheese",180],[11,"Angara Roll",130],[12,"Angara Cheese Roll",150],
+      [13,"Angara Roll With Egg & Cheese",170],[14,"Chicken Tikka Roll",130],[15,"Chicken Tikka Cheese Roll",150],
+      [16,"Chicken Tikka Roll With Egg & Cheese",170],[17,"Shish Taouk Roll",130],[18,"Cheese Shish Taouk Roll",150],
+      [19,"Shish Taouk Roll With Egg & Cheese",170]]],
+    ["Veg", "v", [
+      [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[22,"Paneer Cheese Roll",160],[23,"Mix Veg Roll",120],
+      [24,"Mix Veg Roll With Cheese",140],[25,"Falafel Roll",140],[26,"Falafel Cheese Roll",160],[27,"Lebanese Masala Roll",120],
+      [28,"Lebanese Masala Roll With Cheese",140],[29,"Veg Cutlet Roll",120],[30,"Veg Cutlet Roll With Cheese",140],
+      [31,"Hummus Garlic Roll",110],[32,"Hummus Garlic Roll With Cheese",130]]]]],
+  ["Plates", "Hummus, falafel & shawarma with pita", [
+    ["Veg", "v", [
+      [33,"Hummus Plate With 2 Pita Bread",200],[34,"Falafel Plate (4 + 2 Pita Bread) & Hummus",290],[35,"Hummus Falafel Plate",250]]],
+    ["Chicken Shawarma", "n", [
+      [36,"Chicken Shawarma Plate Without Salad",170],[37,"Chicken Shawarma Plate With Salad",200],
+      [38,"Falafel Chicken Plate",320],[39,"Shahan Shawarma Plate",320]]]]],
+  ["Burgers", "Crispy, tikka & fries burgers", [
+    ["Chicken", "n", [
+      [40,"Chicken Burger",100],[41,"Chicken Cheese Burger",120],[42,"Chicken Burger With Egg & Cheese",150],
+      [43,"Chicken Fries Burger",150],[44,"Chicken Fries Cheese Burger",170],[45,"Chicken Crispy Burger",150],
+      [46,"Chicken Crispy Cheese Burger",170],[47,"Chicken Crispy Burger With Egg & Cheese",190],[48,"Chicken Tikka Burger",150],
+      [49,"Chicken Tikka Cheese Burger",170],[50,"Chicken Burger With Egg & Cheese",190]]],
+    ["Veg", "v", [
+      [51,"Veg Burger",90],[52,"Veg Cheese Burger",110],[53,"Veg Fries Burger",130],[54,"Veg Fries Cheese Burger",150],
+      [55,"Paneer Burger",140],[56,"Paneer Cheese Burger",160],[57,"Paneer Tikka Burger",160],[58,"Paneer Tikka Cheese Burger",180]]]]],
+  ["Sandwiches", "Grilled, club & Bombay toast", [
+    ["Non-veg", "n", [
+      [59,"Chicken Cheese Grilled Sandwich",110],[60,"Non Veg Club Sandwich",150],[61,"Chicken Tikka Sandwich",140],
+      [62,"Chicken Cutlet Sandwich",140],[63,"Chicken Shawarma Sandwich",140],[64,"Chicken Fila Cheese Sandwich",160],
+      [65,"Chicken Tandoori Cheese Sandwich",160],[66,"Chicken Shish Taouk Cheese Sandwich",160],[67,"Chicken Russian Salad Sandwich",140]]],
+    ["Veg", "v", [
+      [68,"Veg Grilled Sandwich",90],[69,"Veg Club Sandwich",130],[70,"Mushroom Mania Sandwich",100],
+      [71,"Corn Cheese Grilled Sandwich",110],[72,"Paneer Cheese Grilled Sandwich",130],[73,"Plain Cheese Sandwich",100],
+      [74,"Bombay Toast",80],[75,"Veg Russian Salad Sandwich",90],[76,"Veg Cutlet Sandwich",120],[77,"Grilled Cheese Sandwich",110]]]]],
+  ["Pizza", "Tandoori, tikka, shawarma & cheese", [
+    ["Non-veg", "n", [
+      [84,"Chicken Cheese Pizza",150],[85,"Chicken Shawarma Pizza",210],[86,"Tandoori Chicken Pizza",240],
+      [87,"Chicken Tikka Pizza",230],[88,"Classic Chicken Pizza",220]]],
+    ["Veg", "v", [
+      [89,"Veg Pizza",130],[90,"Sweetcorn Pizza",170],[91,"Paneer Cheese Pizza",190],[92,"Cheese Pizza",170],
+      [93,"Veg Special Pizza",160],[94,"Mushroom Cheese Pizza",170]]]]],
+  ["Chinese", "Fried rice, hakka noodles & dry starters", [
+    ["Non-veg", "n", [
+      [102,"Chicken Fried Rice",130],[103,"Chicken Schezwan Fried Rice",150],[104,"Chicken Hakka Noodles",130],
+      [105,"Chicken Schezwan Hakka Noodles",150],[106,"Chicken 65",250],[107,"Chicken Chilly Dry",250]]],
+    ["Veg", "v", [
+      [108,"Veg Fried Rice",120],[109,"Veg Schezwan Rice",140],[110,"Veg Paneer Rice",170],[111,"Veg Paneer Schezwan Rice",190],
+      [112,"Veg Hakka Noodles",120],[113,"Veg Schezwan Hakka Noodles",140],[114,"Veg Paneer Hakka Noodles",170],
+      [115,"Veg Paneer Schezwan Hakka Noodles",190]]]]],
 ],
 snacks: [
-  ["All Day Breakfast", null, [
-    [78,"Egg Bhurji",140,"e"],[79,"Egg Masala Omelette",120,"e"],[80,"Chicken Kheema",180,"n"],
-    [81,"French Toast",100,"e"],[82,"Toast Butter Jam",80,"v"],[83,"Toast Butter",60,"v"]]],
-  ["French Fries", null, [
-    [95,"Salted Fries",100,"v"],[96,"Salted Cheese Fries",120,"v"],[97,"Peri Peri Fries",130,"v"],[98,"Peri Peri Cheese Fries",150,"v"],
-    [99,"Schezwan Fries",130,"v"],[100,"Schezwan Cheese Fries",150,"v"],[101,"Crispy Chicken Cheese Fries",200,"n"]]],
-  ["Cutlet", null, [
-    [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"],[118,"Veg Cheese Cutlet",130,"v"],[119,"Chicken Cheese Cutlet",160,"n"]]],
+  ["All Day Breakfast", "Eggs, kheema & toast, any time", [
+    [null, null, [
+      [78,"Egg Bhurji",140,"e"],[79,"Egg Masala Omelette",120,"e"],[80,"Chicken Kheema",180,"n"],
+      [81,"French Toast",100,"e"],[82,"Toast Butter Jam",80,"v"],[83,"Toast Butter",60,"v"]]]]],
+  ["French Fries", "Salted, peri peri & schezwan", [
+    [null, null, [
+      [95,"Salted Fries",100,"v"],[96,"Salted Cheese Fries",120,"v"],[97,"Peri Peri Fries",130,"v"],[98,"Peri Peri Cheese Fries",150,"v"],
+      [99,"Schezwan Fries",130,"v"],[100,"Schezwan Cheese Fries",150,"v"],[101,"Crispy Chicken Cheese Fries",200,"n"]]]]],
+  ["Cutlets", "Chicken & veg, plain or with cheese", [
+    [null, null, [
+      [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"],[118,"Veg Cheese Cutlet",130,"v"],[119,"Chicken Cheese Cutlet",160,"n"]]]]],
 ],
 drinks: [
-  ["Beverages (Cold)", "v", [
-    [120,"Fresh Lime Water",50],[121,"Fresh Lime Soda",70],[122,"Cold Drinks 500 ml",50],[123,"Cold Drinks 200 ml",20],
-    [124,"Mineral Water (1 L)",20],[125,"Cold Drinks",100],[126,"Cold Drinks",150],[127,"Cold Drinks",40],[128,"Cold Drinks",60]]],
-  ["Milk Shakes", "v", [
-    [129,"Cold Coffee",100],[130,"Cold Coffee With Vanilla Ice Cream",120],[131,"Cold Coffee With Chocolate Ice Cream",130],
-    [132,"Chocolate Milk Shake",100],[133,"Chocolate Milk Shake With Vanilla Ice Cream",120],
-    [134,"Chocolate Milk Shake With Chocolate Ice Cream",130]]],
-  ["Beverages (Hot)", "v", [
-    [135,"Hot Chocolate",80],[136,"Hot Coffee",70],[137,"Hot Glass of Milk",50]]],
+  ["Cold Drinks", "Fresh lime, sodas & water", [
+    [null, "v", [
+      [120,"Fresh Lime Water",50],[121,"Fresh Lime Soda",70],[122,"Cold Drinks 500 ml",50],[123,"Cold Drinks 200 ml",20],
+      [124,"Mineral Water (1 L)",20],[125,"Cold Drinks",100],[126,"Cold Drinks",150],[127,"Cold Drinks",40],[128,"Cold Drinks",60]]]]],
+  ["Milk Shakes", "Cold coffee & chocolate, with or without ice cream", [
+    [null, "v", [
+      [129,"Cold Coffee",100],[130,"Cold Coffee With Vanilla Ice Cream",120],[131,"Cold Coffee With Chocolate Ice Cream",130],
+      [132,"Chocolate Milk Shake",100],[133,"Chocolate Milk Shake With Vanilla Ice Cream",120],
+      [134,"Chocolate Milk Shake With Chocolate Ice Cream",130]]]]],
+  ["Hot Drinks", "Coffee, hot chocolate & milk", [
+    [null, "v", [
+      [135,"Hot Chocolate",80],[136,"Hot Coffee",70],[137,"Hot Glass of Milk",50]]]]],
 ],
 };
-const EXTRAS = ["Extras", [
+// Shown as its own section at the end of the Food tab
+const EXTRAS = ["Extras", "Add to any order", [
   [138,"Extra Garlic Sauce",50],[139,"Extra Mayonnaise",50],[140,"Extra Pita Bread",20],[141,"Extra Salad",20],
   [142,"Extra Mayonnaise (Small)",20],[143,"Extra Garlic Sauce (Small)",20],[144,"Extra Spicy Sauce",20],
   [145,"Extra Cheese",20],[146,"Extra Fries",60],[147,"Extra Peri Peri Fries",80]]];
@@ -279,7 +328,6 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const TABS = { food: "Food", snacks: "Snacks", drinks: "Drinks" };
-const TAB_ACCENT = { food: "#C0182F", snacks: "#F2BD2C", drinks: "#C0182F" };
 const DIETS = ["all", "veg", "nonveg"];
 const state = { tab: "food", diet: "all", q: "" };
 
@@ -288,50 +336,63 @@ const dietOk = d => state.diet === "all" || (state.diet === "veg" ? !isNonVeg(d)
 const markHTML = d => isNonVeg(d)
   ? `<span class="mark nonveg" role="img" aria-label="Non-vegetarian" title="Non-vegetarian"></span>`
   : `<span class="mark veg" role="img" aria-label="Vegetarian" title="Vegetarian"></span>`;
-const legendHTML = () => '<div class="legend"><span><span class="mark veg"></span>Vegetarian</span><span><span class="mark nonveg"></span>Non-vegetarian</span><span><span class="tag egg">EGG</span>Contains egg</span></div>';
 
 /* Every dish is looked up by its menu number (1–147), which the cart uses as its id. */
 const ITEM = {};
 for (const secs of Object.values(MENU))
-  for (const [title, sd, items] of secs)
-    for (const [no, name, price, d] of items) ITEM[no] = { no, name, price, diet: d || sd, sec: title };
-for (const [no, name, price] of EXTRAS[1]) ITEM[no] = { no, name, price, diet: "v", sec: EXTRAS[0] };
-// "Cold Drinks" appears four times at different sizes, so the order shows the section and number to tell them apart
+  for (const [title, , groups] of secs)
+    for (const [, gd, items] of groups)
+      for (const [no, name, price, d] of items) ITEM[no] = { no, name, price, diet: d || gd, sec: title };
+for (const [no, name, price] of EXTRAS[2]) ITEM[no] = { no, name, price, diet: "v", sec: EXTRAS[0] };
+// "Cold Drinks" appears four times at different sizes, so the order shows the number to tell them apart
 const label = no => { const it = ITEM[no]; return it.name === "Cold Drinks" ? `${it.name} (#${no})` : it.name; };
 
 const cartAttrs = no => ` data-cart-id="item-${no}" data-cart-name="${esc(label(no))}" data-cart-price="${ITEM[no].price}"`;
 // Lets the cart re-check a saved order against today's menu (config.js getItem)
 function cartItem(id) { const it = ITEM[String(id).replace("item-", "")]; return it ? { name: label(it.no), price: it.price } : null; }
 function itemHTML([no, name, price, d]) {
-  return `<div class="item"${cartAttrs(no)}><h3>${markHTML(d)}<span class="no">${no}</span>${esc(name)}${d === "e" ? '<span class="tag egg">EGG</span>' : ""}</h3><div class="price">${price}</div></div>`;
+  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}<span class="no">No. ${no}</span></div></div><div class="price">${price}</div></div>`;
 }
 
 function emptyHTML(q) {
-  if (q) return `<div class="empty">Nothing matches “${esc(state.q)}”. Try another word.</div>`;
-  const other = Object.keys(MENU).find(t => t !== state.tab && MENU[t].some(([, sd, items]) => items.some(i => dietOk(i[3] || sd))));
+  if (q) return `<div class="empty">Nothing matches “${esc(state.q)}”.<br>Try another word.</div>`;
+  const other = Object.keys(MENU).find(t => t !== state.tab && MENU[t].some(([, , groups]) => groups.some(([, gd, items]) => items.some(i => dietOk(i[3] || gd)))));
   const what = state.diet === "veg" ? "vegetarian" : "non-veg";
   return `<div class="empty">No ${what} dishes in ${TABS[state.tab]}.${other ? `<button type="button" data-go="${other}">See ${TABS[other]}</button>` : ""}</div>`;
 }
 
+function sectionHTML(id, title, blurb, body, n) {
+  return `<section class="sec" id="${id}"><header class="sec-head"><h2>${esc(title)}</h2>${blurb ? `<p>${esc(blurb)}</p>` : ""}<span class="count" aria-label="${n} items">${n}</span></header>${body}</section>`;
+}
+
 function render() {
-  document.documentElement.style.setProperty("--accent", TAB_ACCENT[state.tab]);
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === state.tab));
   document.querySelectorAll(".diet button").forEach(b => b.setAttribute("aria-pressed", b.dataset.diet === state.diet));
   const q = state.q.trim().toLowerCase();
   const match = (...parts) => !q || parts.join(" ").toLowerCase().includes(q);
   let html = "", chips = "";
-  for (const [title, sd, items] of MENU[state.tab]) {
-    const hits = items.map(i => [i[0], i[1], i[2], i[3] || sd]).filter(i => dietOk(i[3]) && match(i[0], i[1], title));
-    if (!hits.length) continue;
+  for (const [title, blurb, groups] of MENU[state.tab]) {
+    let body = "", n = 0;
+    for (const [glabel, gd, items] of groups) {
+      const hits = items.map(i => [i[0], i[1], i[2], i[3] || gd]).filter(i => dietOk(i[3]) && match(i[0], i[1], title, glabel || ""));
+      if (!hits.length) continue;
+      n += hits.length;
+      if (glabel) body += `<h3 class="grp-h">${markHTML(gd)}${esc(glabel)}<span>${hits.length}</span></h3>`;
+      body += hits.map(itemHTML).join("");
+    }
+    if (!n) continue;
     const id = slug(title);
     chips += `<button class="chip" data-target="${id}">${esc(title)}</button>`;
-    html += `<section class="sec" id="${id}"><div class="sec-head"><h2>${esc(title)}</h2><span class="count">${hits.length} items</span></div>${hits.map(itemHTML).join("")}</section>`;
+    html += sectionHTML(id, title, blurb, body, n);
   }
   if (state.tab === "food" && state.diet !== "nonveg") {
-    const ex = EXTRAS[1].filter(([no, name]) => match(no, name, EXTRAS[0]));
-    if (ex.length) html += `<div class="extras"><b>${EXTRAS[0]}: add to any order</b><ul>${ex.map(([no, name, p]) => `<li${cartAttrs(no)}>${markHTML("v")}<span class="n">${esc(name)}</span><span class="p">${p}</span></li>`).join("")}</ul></div>`;
+    const ex = EXTRAS[2].filter(([no, name]) => match(no, name, EXTRAS[0]));
+    if (ex.length) {
+      chips += `<button class="chip" data-target="extras">${EXTRAS[0]}</button>`;
+      html += sectionHTML("extras", EXTRAS[0], EXTRAS[1], `<div class="extras-list">${ex.map(([no, name, p]) => itemHTML([no, name, p, "v"])).join("")}</div>`, ex.length);
+    }
   }
-  $("#pages").innerHTML = html ? legendHTML() + html : emptyHTML(q);
+  $("#pages").innerHTML = html || emptyHTML(q);
   $("#chips").innerHTML = chips;
   spy();
   document.documentElement.style.scrollPaddingTop = ($("#bar").offsetHeight + 12) + "px";
