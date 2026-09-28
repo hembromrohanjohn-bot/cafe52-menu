@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;1,400&display=swap">
-<link rel="stylesheet" href="cart/staff.css?v=20260929b">
+<link rel="stylesheet" href="cart/staff.css?v=20260929c">
 <style>
   /* Café 52 look for the shared staff screen: crimson, golden yellow and slate grey */
   :root {
@@ -22,6 +22,7 @@
   .brand-sub { font-style: italic; }
   /* Orders waiting to be accepted turn the header slate so it stands out from the crimson */
   body.has-new .top { background: #2A323C; }
+  .top a.pill { display: inline-flex; align-items: center; text-decoration: none; }
   /* Sold out today: chips for each sold-out dish, and a list to mark dishes */
   .soldout { max-width: 1400px; width: calc(100% - 44px); margin: 14px auto 0; padding: 16px 24px; border-radius: 20px; background: var(--st-card); box-shadow: inset 0 0 0 1.5px var(--st-line), 0 8px 22px rgba(20, 28, 38, .06); }
   .so-top { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
@@ -62,6 +63,7 @@
   <div class="top-right">
     <span class="clock" id="clock" aria-hidden="true"></span>
     <span class="who" id="who"></span>
+    <a class="pill" id="sales-link" href="sales.html" hidden>Sales</a>
     <button type="button" class="pill" id="sound" aria-pressed="true">Sound on</button>
     <button type="button" class="pill" id="signout" hidden>Sign out</button>
   </div>
@@ -119,10 +121,10 @@
   <section class="col col-done"><h2>Served <span class="n" id="count-done">0</span></h2><div class="list" id="list-done"></div></section>
 </main>
 
-<script src="config.js?v=20260929b"></script>
-<script src="menu-data.js?v=20260929b"></script>
-<script type="module" src="cart/staff.js?v=20260929b" onerror="bootFailed()"></script>
-<script type="module" src="cart/soldout-staff.js?v=20260929b"></script>
+<script src="config.js?v=20260929c"></script>
+<script src="menu-data.js?v=20260929c"></script>
+<script type="module" src="cart/staff.js?v=20260929c" onerror="bootFailed()"></script>
+<script type="module" src="cart/soldout-staff.js?v=20260929c"></script>
 <script>
   // If the order screen can't start (no internet, or a stale copy), say so instead of showing a blank page
   function bootFailed() {

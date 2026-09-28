@@ -29,6 +29,7 @@ const busy = new Set();
 
 onAuthStateChanged(auth, user => {
   $("#soldout").hidden = !user;
+  const sales = $("#sales-link"); if (sales) sales.hidden = !user;   // the Sales report uses the same sign-in
   if (stop) { stop(); stop = null; }
   if (!user) { if ($("#so-dialog").open) $("#so-dialog").close(); return; }
   stop = onSnapshot(ref, snap => {
