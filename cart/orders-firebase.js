@@ -60,3 +60,11 @@ export function watchOrder(config, id, callback) {
     if (snap.exists()) callback({ status: snap.get("status"), statusAt: snap.get("statusAt")?.toMillis?.() || null });
   }, err => console.warn("[cart] Couldn't follow order status:", err));
 }
+
+// Calls back with the ids of dishes staff have marked sold out (e.g. ["item-106"]) whenever the list changes;
+// returns a function that stops watching
+export function watchSoldOut(config, callback) {
+  return onSnapshot(doc(database(config), "restaurants", config.restaurantId, "public", "soldout"),
+    snap => callback(snap.exists() && Array.isArray(snap.get("items")) ? snap.get("items").filter(x => typeof x === "string") : []),
+    err => console.warn("[cart] Couldn't follow sold-out dishes:", err));
+}

@@ -1,12 +1,12 @@
 // Staff order screen: live list of today's orders, with a chime for new ones and buttons to move them along.
 // Shared by every restaurant; reads window.MENU_CONFIG (restaurantId, restaurantName, currency, locale, firebase).
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";
-const { initializeApp } = await import(SDK + "firebase-app.js");
+const { initializeApp, getApps } = await import(SDK + "firebase-app.js");
 const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } = await import(SDK + "firebase-auth.js");
 const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, setDoc, runTransaction, serverTimestamp, Timestamp } = await import(SDK + "firebase-firestore.js");
 
 const C = window.MENU_CONFIG;
-const app = initializeApp(C.firebase);
+const app = getApps()[0] || initializeApp(C.firebase);   // soldout-staff.js may have started it first
 const auth = getAuth(app);
 const db = getFirestore(app);
 const $ = s => document.querySelector(s);

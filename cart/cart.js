@@ -37,7 +37,8 @@
   const STORE_PREFIX = "cart:" + (C.restaurantId || location.pathname);
   const MAX_QTY = 20;
   const servicePct = Number(C.serviceChargePercent) || 0;
-  const soldOut = new Set(C.soldOut || []);
+  const fixedSoldOut = C.soldOut || [];       // from config.js
+  let soldOut = new Set(fixedSoldOut);        // plus what staff mark sold out on the staff screen (live)
   const doc = document.documentElement;
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -134,6 +135,26 @@
       refresh();
       paintGate();
     })).catch(err => console.warn("[cart] Couldn't load ordering status:", err));
+  }
+
+  // Staff mark dishes sold out on the staff screen (restaurants/{id}/public/soldout). Sold-out dishes show
+  // "Sold out" instead of + Add, and are taken out of a basket that has them, with a note to the guest.
+  function setSoldOut(ids) {
+    soldOut = new Set([...fixedSoldOut, ...ids]);
+    const gone = lines.filter(l => isSoldOut(l.id, l.name));
+    if (gone.length) {
+      lines = lines.filter(l => !gone.includes(l));
+      save();
+      const names = [...new Set(gone.map(l => l.name))].join(", ");
+      live.textContent = `Sorry, ${names} ${gone.length === 1 ? "is" : "are"} now sold out and ${gone.length === 1 ? "was" : "were"} taken out of your order.`;
+      alert(live.textContent);
+    }
+    refresh();
+  }
+  function watchSoldOut() {
+    if (!C.firebase) return;
+    firebase().then(fb => fb.watchSoldOut && fb.watchSoldOut(C, setSoldOut))
+      .catch(err => console.warn("[cart] Couldn't load sold-out dishes:", err));
   }
 
   /* ---------- Welcome screen: today's code as soon as the menu opens ---------- */
@@ -478,7 +499,9 @@
     const root = document.querySelector(C.menuSelector || "body");
     if (!root) return;
     root.querySelectorAll("[data-cart-id]").forEach(el => {
-      const html = controlHTML(readItem(el));
+      const it = readItem(el);
+      el.classList.toggle("is-soldout", isSoldOut(it.id, it.name));
+      const html = controlHTML(it);
       let ctl = el.querySelector(":scope > .cart-ctl");
       if (!ctl) {
         if (!html) return;
@@ -841,6 +864,7 @@
     paintTable();
     watchTracked();
     watchPause();
+    watchSoldOut();
     doc.classList.add("cart-on");
     document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKey);

@@ -108,6 +108,18 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.token.email;
     }
 
+    // Sold-out dishes: anyone can see the list (menus grey those dishes out), only staff change it.
+    // items holds dish ids like "item-106".
+    match /restaurants/{rid}/public/soldout {
+      allow get: if true;
+      allow create, update: if isStaff(rid)
+        && request.resource.data.keys().hasOnly(['items', 'updatedAt', 'updatedBy'])
+        && request.resource.data.items is list
+        && request.resource.data.items.size() <= 300
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.token.email;
+    }
+
     // Everything else is closed.
     match /{path=**} {
       allow read, write: if false;
