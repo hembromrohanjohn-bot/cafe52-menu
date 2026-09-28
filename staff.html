@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Orders · Café 52</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;1,400&display=swap">
+<link rel="stylesheet" href="cart/staff.css?v=20260929a">
+<style>
+  /* Café 52 look for the shared staff screen: crimson, golden yellow and slate grey */
+  :root {
+    --st-bg: #ECEEF1; --st-panel: #F5F6F8; --st-card: #FFFFFF; --st-ink: #1F2630; --st-muted: #5D6877; --st-line: #D9DDE3;
+    --st-brand: #C0182F; --st-brand-deep: #8E0F22; --st-brand-ink: #FFFFFF; --st-gold: #F2BD2C;
+    --st-new: #C0182F; --st-go: #2A323C; --st-cooking: #C9960E; --st-done: #3F7A4A;
+    --st-font: "Inter", system-ui, sans-serif; --st-font-strong: "Anton", Impact, "Arial Narrow", sans-serif;
+    --st-font-script: "Lora", Georgia, serif; --st-font-soft: "Lora", Georgia, serif;
+    --st-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%238E0F22'/%3E%3Cpath d='M32 10L54 32 32 54 10 32z' fill='%23F2BD2C'/%3E%3Cpath d='M32 20L44 32 32 44 20 32z' fill='%23C0182F'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23F2BD2C'/%3E%3Cg fill='%232A323C'%3E%3Cpath d='M0 0h12L0 12zM64 0v12L52 0zM0 64V52l12 12zM64 64H52l12-12z'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .wordmark { font-weight: 400; text-transform: uppercase; letter-spacing: .02em; }
+  .brand-sub { font-style: italic; }
+  /* Orders waiting to be accepted turn the header slate so it stands out from the crimson */
+  body.has-new .top { background: #2A323C; }
+</style>
+
+<div class="tiles" aria-hidden="true"></div>
+<header class="top">
+  <div class="brand"><span class="wordmark">Café 52</span><span class="brand-sub">Orders</span></div>
+  <div class="top-right">
+    <span class="clock" id="clock" aria-hidden="true"></span>
+    <span class="who" id="who"></span>
+    <button type="button" class="pill" id="sound" aria-pressed="true">Sound on</button>
+    <button type="button" class="pill" id="signout" hidden>Sign out</button>
+  </div>
+</header>
+<p class="banner warn" id="offline" hidden>No internet connection. New orders won't appear until it's back.</p>
+<p class="banner warn" id="problem" role="alert" hidden></p>
+<button type="button" class="banner info" id="unlock" hidden>Tap here to turn on the new-order chime</button>
+<button type="button" class="banner update" id="update" hidden>The order screen has been updated. Tap here to reload.</button>
+<p class="booting" id="booting">Loading orders…</p>
+
+<form class="login" id="login-form" hidden>
+  <div class="login-top"><span class="wordmark">Café 52</span><span class="brand-sub">Staff</span></div>
+  <div class="login-body">
+    <p>Sign in once on this tablet and it stays signed in.</p>
+    <label for="username">Email or username</label>
+    <input id="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button type="submit" id="login-btn">Sign in</button>
+    <p class="err" id="login-err" role="alert"></p>
+  </div>
+</form>
+
+<section class="today" id="today" hidden aria-label="Today's code and ordering">
+  <div class="today-code">
+    <small>Today’s code</small>
+    <b id="code" aria-live="polite">····</b>
+    <span id="code-until">Guests enter this once to order.</span>
+  </div>
+  <div class="today-actions">
+    <button type="button" class="today-btn" id="new-code">New code</button>
+    <button type="button" class="today-btn pause" id="pause" aria-pressed="false">Pause ordering</button>
+  </div>
+</section>
+<p class="banner paused" id="paused-banner" hidden>Ordering is paused. Guests can still see the menu, but can’t place orders.</p>
+
+<main class="board" id="board" hidden>
+  <section class="col col-new"><h2>New <span class="n" id="count-new">0</span></h2><div class="list" id="list-new"></div></section>
+  <section class="col col-doing"><h2>In the kitchen <span class="n" id="count-doing">0</span></h2><div class="list" id="list-doing"></div></section>
+  <section class="col col-done"><h2>Served <span class="n" id="count-done">0</span></h2><div class="list" id="list-done"></div></section>
+</main>
+
+<script src="config.js?v=20260929a"></script>
+<script type="module" src="cart/staff.js?v=20260929a" onerror="bootFailed()"></script>
+<script>
+  // If the order screen can't start (no internet, or a stale copy), say so instead of showing a blank page
+  function bootFailed() {
+    const el = document.getElementById("booting");
+    if (el && !el.hidden) el.innerHTML = "Couldn't load the order screen.<br>Check the internet connection, then reload (Cmd + Shift + R on a Mac, or pull down to refresh on a tablet).";
+  }
+  setTimeout(bootFailed, 15000);
+</script>
+
+</html>

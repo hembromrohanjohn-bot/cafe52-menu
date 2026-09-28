@@ -1,0 +1,27 @@
+// Café 52 settings, shared by the menu (index.html) and the staff order screen (staff.html).
+// Everything restaurant-specific for the cart lives here.
+window.MENU_CONFIG = {
+  restaurantId: "cafe52",
+  restaurantName: "Café 52",
+  currency: "₹",
+  locale: "en-IN",
+  serviceChargePercent: 0,
+  orderingEnabled: true,        // false = view-only menu
+  orderWebhookUrl: "",          // only used when firebase (below) isn't set
+  soldOut: [],                  // dish names that can't be ordered today, e.g. ["Chicken 65"]
+  menuSelector: "#pages",       // where the menu items are rendered
+  dailyCode: true,              // guests need today's 4-digit code (shown on the staff screen) to order
+  dailyCodeResetHour: 5,        // a new code is made automatically at 5 am each day
+  getItem: id => cartItem(id),  // lets the cart re-check a saved order against today's menu
+
+  // Orders are saved to Café 52's own Firebase project, and the staff screen reads them.
+  // These values are meant to be public; the Firestore security rules decide who can read and change orders.
+  firebase: {
+    apiKey: "AIzaSyC6U-TvcFU0uDVtpflIZ9Ndq6IpvM7rUFA",
+    authDomain: "cafe52-orders.firebaseapp.com",
+    projectId: "cafe52-orders",
+    storageBucket: "cafe52-orders.firebasestorage.app",
+    messagingSenderId: "431070590385",
+    appId: "1:431070590385:web:3f1d03d5ab07b4efa07990"
+  }
+};
