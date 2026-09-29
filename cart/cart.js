@@ -295,6 +295,7 @@
           saveTracked();
           live.textContent = `Order ${entry.code}: ${STATUS[status].label}. ${STATUS[status].note}`;
           refresh();
+          document.dispatchEvent(new CustomEvent("cart:orders"));   // e.g. ratings.js offers "Rate your food" once served
         });
         watching.set(o.id, stop);
       }).catch(err => { watching.delete(o.id); console.warn("[cart] Couldn't load order status:", err); });
@@ -582,7 +583,9 @@
     if (o.status === "cancelled") html += '<p class="cart-track-cancel">Cancelled</p>';
     else html += '<ol class="cart-steps">' + STEPS.map((s, i) =>
       `<li class="${i < step ? "done" : i === step ? "now" : ""}"${i === step ? ' aria-current="step"' : ""}><span class="cart-dot" aria-hidden="true"></span>${esc(STATUS[s].label)}</li>`).join("") + "</ol>";
-    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p></div>`;
+    let extra = "";
+    if (typeof C.trackerExtra === "function") { try { extra = C.trackerExtra(o) || ""; } catch (_) {} }
+    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${extra}</div>`;
   }
 
   function lineHTML(l) {
@@ -876,7 +879,8 @@
     if (gateWanted()) openGate();
   }
 
-  window.MenuCart = { buildOrder, submitOrder };
+  // trackedOrders: orders placed from this phone in the last 8 hours ({ id, code, table, at, status }); refresh redraws the cart
+  window.MenuCart = { buildOrder, submitOrder, trackedOrders: () => tracked.map(o => ({ ...o })), refresh: () => { painted.delete(bodyEl); refresh(); } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

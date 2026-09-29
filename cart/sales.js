@@ -66,6 +66,46 @@ async function fetchOrders(start, end) {
   return orders;
 }
 
+// Guest ratings given in the period (cart/ratings.js): { items: { "item-1": 5 }, comment, createdAt }
+async function fetchRatings(start, end) {
+  const key = "r" + start.getTime() + "-" + end.getTime();
+  if (cache.has(key) && end <= new Date()) return cache.get(key);
+  const q = query(collection(db, "restaurants", C.restaurantId, "ratings"),
+    where("createdAt", ">=", Timestamp.fromDate(start)), where("createdAt", "<", Timestamp.fromDate(end)), orderBy("createdAt", "desc"));
+  const list = (await getDocs(q)).docs.map(d => d.data());
+  cache.set(key, list);
+  return list;
+}
+
+const STAR_WORDS = ["", "Poor", "Not great", "Good", "Very good", "Loved it"];
+const starText = n => "★".repeat(n) + "☆".repeat(5 - n);
+function paintRatings(list) {
+  const names = {};
+  // MENU and EXTRAS come from menu-data.js (top-level consts, so not on window)
+  for (const secs of Object.values(typeof MENU !== "undefined" ? MENU : {}))
+    for (const [, , groups] of secs) for (const [, , items] of groups) for (const [no, name] of items) names["item-" + no] = name;
+  for (const [no, name] of (typeof EXTRAS !== "undefined" ? EXTRAS[2] : [])) names["item-" + no] = name;
+  const byDish = new Map();
+  for (const r of list) for (const [id, n] of Object.entries(r.items || {})) {
+    const d = byDish.get(id) || { id, no: dishNo(id), name: names[id] || id, s: 0, n: 0 };
+    d.s += n; d.n++; byDish.set(id, d);
+  }
+  const rows = [...byDish.values()].sort((a, b) => b.s / b.n - a.s / a.n || b.n - a.n);
+  const all = rows.reduce((t, d) => ({ s: t.s + d.s, n: t.n + d.n }), { s: 0, n: 0 });
+  $("#k-rating").textContent = all.n ? `★ ${(all.s / all.n).toFixed(1)}` : "–";
+  $("#ratings-body").innerHTML = rows.length
+    ? rows.map(d => `<tr><td class="no">${d.no ?? ""}</td><td class="nm">${esc(d.name)}</td><td class="r stars">★ ${(d.s / d.n).toFixed(1)}</td><td class="r">${num(d.n)}</td></tr>`).join("")
+    : '<tr><td colspan="4" class="none">No ratings yet for this period.</td></tr>';
+  const notes = list.filter(r => r.comment);
+  $("#comments").innerHTML = notes.length
+    ? notes.map(r => {
+        const when = r.createdAt?.toDate ? r.createdAt.toDate() : null;
+        const dishes = Object.entries(r.items || {}).map(([id, n]) => `<span title="${esc(STAR_WORDS[n])}">${esc(names[id] || id)} <b>${starText(n)}</b></span>`).join("");
+        return `<li><p>“${esc(r.comment)}”</p><div class="c-meta">${when ? esc(when.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })) : ""}</div><div class="c-dishes">${dishes}</div></li>`;
+      }).join("")
+    : '<li class="none">No notes from guests in this period.</li>';
+}
+
 function tally(orders) {
   const items = new Map(), days = new Map(), months = new Map();
   let revenue = 0, count = 0;
@@ -101,10 +141,11 @@ async function load() {
   $("#status").hidden = false;
   $("#status").textContent = "Adding up the orders…";
   try {
-    const orders = await fetchOrders(p.start, p.end);
+    const [orders, ratings] = await Promise.all([fetchOrders(p.start, p.end), fetchRatings(p.start, p.end).catch(err => { console.warn("[sales] Ratings:", err); return []; })]);
     last = { ...tally(orders), p };
     $("#status").hidden = true;
     paint();
+    paintRatings(ratings);
   } catch (err) {
     console.error("[sales] Couldn't load orders:", err);
     $("#status").textContent = err.code === "permission-denied"

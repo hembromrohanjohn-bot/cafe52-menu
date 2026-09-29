@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#8E0F22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="cart/cart.css?v=20260929b">
+<link rel="stylesheet" href="cart/cart.css?v=20260929d">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap">
 <style>
 /* ============================================================
@@ -154,6 +154,42 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
 .item .cart-add:hover { background: rgba(242,189,44,.12); }
 .item .cart-step { min-height: 36px; box-shadow: inset 0 -2px 0 var(--gold); }
 .item .cart-step button { width: 34px; height: 36px; }
+/* Ratings: average under the dish name, the "How was your food?" card, and the rating sheet */
+.nm .stars { margin-left: 10px; white-space: nowrap; }
+.nm .stars b { color: var(--gold); font-weight: 700; }
+.nm .stars span { margin-left: 3px; }
+.rate-prompt { display: flex; align-items: center; gap: 14px; margin: 16px 14px 0; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, rgba(242,189,44,.18), rgba(192,24,47,.18)); border: 1.5px solid var(--gold); }
+.rate-prompt div { flex: 1; min-width: 0; }
+.rate-prompt b { display: block; font: 400 20px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
+.rate-prompt span { font-size: 14px; color: #E6EAEF; }
+.rate-open { flex: none; min-height: 42px; padding: 0 18px; border-radius: 999px; border: 0; cursor: pointer; background: var(--gold); color: var(--slate-deep); font: 400 15px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.cart-track .rate-open { margin-top: 12px; width: 100%; }
+.rate-dialog { width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px); padding: 0; border: 0; border-radius: 20px; background: var(--slate); color: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.5); overflow: hidden; border-top: 5px solid var(--gold); }
+.rate-dialog[open] { display: flex; flex-direction: column; }
+.rate-dialog::backdrop { background: rgba(10,12,16,.7); }
+.rate-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 10px 8px 20px; }
+.rate-head h2 { margin: 0; font: 400 28px var(--display); letter-spacing: .03em; text-transform: uppercase; color: var(--gold); }
+.rate-x { width: 44px; height: 44px; border: 0; background: none; color: var(--ink-soft); font-size: 30px; cursor: pointer; }
+.rate-body { flex: 1; overflow-y: auto; padding: 0 20px 8px; }
+.rate-note { margin: 0 0 10px; font: italic 500 15px/1.45 var(--serif); color: var(--ink-soft); }
+.rate-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.rate-name { font-weight: 600; font-size: 15.5px; }
+.rate-stars { display: flex; }
+.rate-stars button { width: 40px; height: 44px; border: 0; background: none; cursor: pointer; font-size: 30px; line-height: 1; color: #56616E; padding: 0; }
+.rate-stars button.on { color: var(--gold); }
+.rate-word { grid-column: 1 / -1; min-height: 1em; font-size: 13px; color: var(--gold); text-align: right; }
+.rate-comment { display: block; margin-top: 10px; font-weight: 600; font-size: 14px; }
+.rate-comment span { font-weight: 400; color: var(--ink-soft); }
+.rate-comment textarea { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: #3A4552; color: #fff; font: 16px/1.4 var(--sans); resize: vertical; }
+.rate-comment textarea:focus { outline: none; border-color: var(--gold); }
+.rate-foot { padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+.rate-send { width: 100%; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: var(--crimson); color: #fff; border-bottom: 3px solid var(--gold); font: 400 18px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.rate-send:disabled { opacity: .5; cursor: default; }
+.rate-error { margin: 0 0 10px; color: #FFB4BE; font-weight: 600; font-size: 14px; }
+.rate-done { text-align: center; padding: 20px 0 10px; }
+.rate-done-mark { width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--slate-deep); font-size: 32px; }
+.rate-done b { font: 400 30px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
+
 /* Sold out (marked on the staff screen): dimmed, price struck through, a label instead of + Add */
 .item.is-soldout .nm, .item.is-soldout .price { opacity: .42; }
 .item.is-soldout .price { text-decoration: line-through; text-decoration-thickness: 2px; }
@@ -220,6 +256,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
     </div>
   </div>
 
+  <div class="rate-prompt" id="rate-prompt" hidden></div>
   <main class="pages" id="pages"></main>
   <p id="live" class="sr" aria-live="polite"></p>
 
@@ -231,7 +268,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
   </footer>
 </div>
 
-<script src="menu-data.js?v=20260929b"></script>
+<script src="menu-data.js?v=20260929d"></script>
 <script>
 /* Dishes, prices and diet marks live in menu-data.js (MENU and EXTRAS). */
 
@@ -263,8 +300,17 @@ const label = no => { const it = ITEM[no]; return it.name === "Cold Drinks" ? `$
 const cartAttrs = no => ` data-cart-id="item-${no}" data-cart-name="${esc(label(no))}" data-cart-price="${ITEM[no].price}"`;
 // Lets the cart re-check a saved order against today's menu (config.js getItem)
 function cartItem(id) { const it = ITEM[String(id).replace("item-", "")]; return it ? { name: label(it.no), price: it.price } : null; }
+// Average guest rating (cart/ratings.js loads RATINGS), shown once a dish has a few ratings
+const MIN_RATINGS = 3;
+function starsHTML(no) {
+  const r = (window.RATINGS || {})["item-" + no];
+  if (!r || !(r.n >= MIN_RATINGS)) return "";
+  const avg = r.s / r.n;
+  return `<span class="stars" aria-label="Rated ${avg.toFixed(1)} out of 5 by ${r.n} guests"><b aria-hidden="true">★ ${avg.toFixed(1)}</b><span aria-hidden="true">(${r.n})</span></span>`;
+}
+window.renderRatings = () => render();
 function itemHTML([no, name, price, d]) {
-  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}<span class="no">No. ${no}</span></div></div><div class="price">${price}</div></div>`;
+  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}<span class="no">No. ${no}${starsHTML(no)}</span></div></div><div class="price">${price}</div></div>`;
 }
 
 function emptyHTML(q) {
@@ -382,7 +428,8 @@ window.addEventListener("resize", () => { document.documentElement.style.scrollP
 }
 render();
 </script>
-<script src="config.js?v=20260929b"></script>
-<script src="cart/cart.js?v=20260929b" charset="utf-8"></script>
+<script src="config.js?v=20260929d"></script>
+<script src="cart/cart.js?v=20260929d" charset="utf-8"></script>
+<script type="module" src="cart/ratings.js?v=20260929d"></script>
 </body>
 </html>

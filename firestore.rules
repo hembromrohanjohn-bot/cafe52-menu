@@ -120,6 +120,39 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.token.email;
     }
 
+    // Guest ratings: one per order (the document id is the order id), only once staff have marked it served.
+    // items maps dish ids to 1–5 stars. Staff read them, and mark each one counted once it's in the averages.
+    match /restaurants/{rid}/ratings/{orderId} {
+      allow create: if rid in staffEmails()
+        && exists(/databases/$(database)/documents/restaurants/$(rid)/orders/$(orderId))
+        && get(/databases/$(database)/documents/restaurants/$(rid)/orders/$(orderId)).data.status == 'served'
+        && request.resource.data.keys().hasAll(['order', 'items', 'comment', 'createdAt', 'counted'])
+        && request.resource.data.keys().hasOnly(['order', 'items', 'comment', 'createdAt', 'counted'])
+        && request.resource.data.order == orderId
+        && request.resource.data.items is map
+        && request.resource.data.items.size() >= 1
+        && request.resource.data.items.size() <= 60
+        && request.resource.data.items.values().hasOnly([1, 2, 3, 4, 5])
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 300
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.counted == false;
+      allow get, list: if isStaff(rid);
+      allow update: if isStaff(rid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['counted'])
+        && request.resource.data.counted == true;
+      allow delete: if false;
+    }
+
+    // Dish averages shown on the menu: anyone can read them, only staff (the staff screen) update them.
+    match /restaurants/{rid}/public/ratings {
+      allow get: if true;
+      allow create, update: if isStaff(rid)
+        && request.resource.data.keys().hasOnly(['items', 'updatedAt'])
+        && request.resource.data.items is map
+        && request.resource.data.updatedAt == request.time;
+    }
+
     // Everything else is closed.
     match /{path=**} {
       allow read, write: if false;
