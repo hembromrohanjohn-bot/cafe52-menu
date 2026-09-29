@@ -79,7 +79,8 @@ async function fetchRatings(start, end) {
 
 const STAR_WORDS = ["", "Poor", "Not great", "Good", "Very good", "Loved it"];
 const starText = n => "★".repeat(n) + "☆".repeat(5 - n);
-function paintRatings(list) {
+// Adds up guest ratings: per-dish averages (best first), the overall average, and the notes guests left
+function rateData(list) {
   const names = {};
   // MENU and EXTRAS come from menu-data.js (top-level consts, so not on window)
   for (const secs of Object.values(typeof MENU !== "undefined" ? MENU : {}))
@@ -90,19 +91,25 @@ function paintRatings(list) {
     const d = byDish.get(id) || { id, no: dishNo(id), name: names[id] || id, s: 0, n: 0 };
     d.s += n; d.n++; byDish.set(id, d);
   }
-  const rows = [...byDish.values()].sort((a, b) => b.s / b.n - a.s / a.n || b.n - a.n);
+  const rows = [...byDish.values()].map(d => ({ ...d, avg: d.s / d.n })).sort((a, b) => b.avg - a.avg || b.n - a.n);
   const all = rows.reduce((t, d) => ({ s: t.s + d.s, n: t.n + d.n }), { s: 0, n: 0 });
-  $("#k-rating").textContent = all.n ? `★ ${(all.s / all.n).toFixed(1)}` : "–";
-  $("#ratings-body").innerHTML = rows.length
-    ? rows.map(d => `<tr><td class="no">${d.no ?? ""}</td><td class="nm">${esc(d.name)}</td><td class="r stars">★ ${(d.s / d.n).toFixed(1)}</td><td class="r">${num(d.n)}</td></tr>`).join("")
+  const notes = list.filter(r => r.comment).map(r => ({
+    when: r.createdAt?.toDate ? r.createdAt.toDate() : null,
+    comment: r.comment,
+    dishes: Object.entries(r.items || {}).map(([id, n]) => ({ name: names[id] || id, n }))
+  }));
+  return { rows, avg: all.n ? all.s / all.n : null, count: all.n, notes };
+}
+const noteTime = d => d ? d.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
+
+function paintRatings(rt) {
+  $("#k-rating").textContent = rt.avg != null ? `★ ${rt.avg.toFixed(1)}` : "–";
+  $("#ratings-body").innerHTML = rt.rows.length
+    ? rt.rows.map(d => `<tr><td class="no">${d.no ?? ""}</td><td class="nm">${esc(d.name)}</td><td class="r stars">★ ${d.avg.toFixed(1)}</td><td class="r">${num(d.n)}</td></tr>`).join("")
     : '<tr><td colspan="4" class="none">No ratings yet for this period.</td></tr>';
-  const notes = list.filter(r => r.comment);
-  $("#comments").innerHTML = notes.length
-    ? notes.map(r => {
-        const when = r.createdAt?.toDate ? r.createdAt.toDate() : null;
-        const dishes = Object.entries(r.items || {}).map(([id, n]) => `<span title="${esc(STAR_WORDS[n])}">${esc(names[id] || id)} <b>${starText(n)}</b></span>`).join("");
-        return `<li><p>“${esc(r.comment)}”</p><div class="c-meta">${when ? esc(when.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })) : ""}</div><div class="c-dishes">${dishes}</div></li>`;
-      }).join("")
+  $("#comments").innerHTML = rt.notes.length
+    ? rt.notes.map(r => `<li><p>“${esc(r.comment)}”</p><div class="c-meta">${esc(noteTime(r.when))}</div><div class="c-dishes">`
+        + r.dishes.map(d => `<span title="${esc(STAR_WORDS[d.n])}">${esc(d.name)} <b>${starText(d.n)}</b></span>`).join("") + "</div></li>").join("")
     : '<li class="none">No notes from guests in this period.</li>';
 }
 
@@ -142,10 +149,10 @@ async function load() {
   $("#status").textContent = "Adding up the orders…";
   try {
     const [orders, ratings] = await Promise.all([fetchOrders(p.start, p.end), fetchRatings(p.start, p.end).catch(err => { console.warn("[sales] Ratings:", err); return []; })]);
-    last = { ...tally(orders), p };
+    last = { ...tally(orders), p, rt: rateData(ratings) };
     $("#status").hidden = true;
     paint();
-    paintRatings(ratings);
+    paintRatings(last.rt);
   } catch (err) {
     console.error("[sales] Couldn't load orders:", err);
     $("#status").textContent = err.code === "permission-denied"
@@ -171,7 +178,7 @@ function paint() {
   $("#k-items").textContent = num(r.count);
   $("#k-revenue").textContent = money(r.revenue);
   $("#k-avg").textContent = r.orders ? money(r.revenue / r.orders) : "–";
-  $("#csv").disabled = !r.items.length;
+  $("#xlsx").disabled = $("#print").disabled = false;
 
   const rows = r.items.slice().sort(SORTS[state.sort]);
   document.querySelectorAll("#items th[data-sort]").forEach(th => th.setAttribute("aria-sort", th.dataset.sort === state.sort ? (state.sort === "name" || state.sort === "no" ? "ascending" : "descending") : "none"));
@@ -214,18 +221,154 @@ function paintControls() {
   $("#next").disabled = p.end > now;
 }
 
-/* ---------- CSV ---------- */
+/* ---------- Excel (.xlsx) and print ---------- */
 
-$("#csv").addEventListener("click", () => {
+// ExcelJS is only downloaded when someone asks for a spreadsheet
+let excelLib = null;
+function loadExcel() {
+  excelLib = excelLib || new Promise((resolve, reject) => {
+    const el = Object.assign(document.createElement("script"), { src: "https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" });
+    el.onload = () => resolve(window.ExcelJS);
+    el.onerror = () => { excelLib = null; reject(new Error("Couldn't load the Excel library")); };
+    document.head.append(el);
+  });
+  return excelLib;
+}
+
+// A workbook with three sheets, each set up to print on A4: Summary, Items sold, Ratings
+async function buildWorkbook(ExcelJS) {
+  const r = last, p = r.p;
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Café 52"; wb.created = new Date();
+  const RUPEE = '"₹"#,##0', CRIMSON = "FFC0182F", GOLD = "FFF2BD2C", SLATE = "FF2A323C", LINE = "FFD9DDE3";
+  const thin = { style: "thin", color: { argb: LINE } };
+  const printed = `Printed ${new Date().toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}`;
+  const sheet = (name, widths, landscape = false) => {
+    const ws = wb.addWorksheet(name, {
+      pageSetup: { paperSize: 9, orientation: landscape ? "landscape" : "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+        margins: { left: 0.5, right: 0.5, top: 0.6, bottom: 0.6, header: 0.3, footer: 0.3 } },
+      headerFooter: { oddFooter: `&L&8Café 52 · ${p.label}&R&8Page &P of &N` },
+      views: [{ showGridLines: false }]
+    });
+    ws.columns = widths.map(width => ({ width }));
+    // Title block: "CAFÉ 52 — Sales", the period, and when it was printed
+    ws.mergeCells(1, 1, 1, widths.length);
+    Object.assign(ws.getCell(1, 1), { value: `CAFÉ 52  ·  ${name.toUpperCase()}` });
+    ws.getCell(1, 1).font = { bold: true, size: 18, color: { argb: "FFFFFFFF" } };
+    ws.getCell(1, 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: CRIMSON } };
+    ws.getCell(1, 1).border = { bottom: { style: "thick", color: { argb: GOLD } } };
+    ws.getRow(1).height = 30;
+    ws.mergeCells(2, 1, 2, widths.length);
+    ws.getCell(2, 1).value = `${p.label}   ·   ${printed}`;
+    ws.getCell(2, 1).font = { italic: true, size: 11, color: { argb: "FF5D6877" } };
+    ws.addRow([]);
+    return ws;
+  };
+  const header = (ws, cells, rightFrom) => {
+    const row = ws.addRow(cells);
+    row.eachCell((c, i) => {
+      c.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: SLATE } };
+      c.alignment = { horizontal: i >= rightFrom ? "right" : "left", vertical: "middle" };
+    });
+    row.height = 20;
+    return row;
+  };
+  const body = (row, money = [], right = []) => row.eachCell({ includeEmpty: true }, (c, i) => {
+    c.border = { bottom: thin };
+    if (money.includes(i)) c.numFmt = RUPEE;
+    if (money.includes(i) || right.includes(i)) c.alignment = { horizontal: "right" };
+  });
+  const totalRow = row => row.eachCell({ includeEmpty: true }, c => {
+    c.font = { bold: true }; c.border = { top: { style: "medium", color: { argb: GOLD } } };
+  });
+
+  // 1. Summary
+  const s1 = sheet("Summary", [26, 16, 16, 18]);
+  const kpis = [["Orders", r.orders], ["Items sold", r.count], ["Sales", r.revenue], ["Average order", r.orders ? Math.round(r.revenue / r.orders) : 0],
+    ["Guest rating", r.rt.avg != null ? `${r.rt.avg.toFixed(1)} / 5  (${r.rt.count} ratings)` : "No ratings"]];
+  for (const [k, v] of kpis) {
+    const row = s1.addRow([k, v]);
+    row.getCell(1).font = { bold: true, color: { argb: "FF5D6877" } };
+    row.getCell(2).font = { bold: true, size: 13 };
+    if (k === "Sales" || k === "Average order") row.getCell(2).numFmt = RUPEE;
+    row.getCell(2).alignment = { horizontal: "left" };
+    row.height = 20;
+  }
+  if (state.mode !== "day" && r.orders) {
+    s1.addRow([]);
+    header(s1, [state.mode === "month" ? "Day" : "Month", "Orders", "Items", "Sales"], 2);
+    const list = state.mode === "month"
+      ? r.days.map(([, d]) => [d.date.toLocaleDateString(C.locale || "en-IN", { weekday: "short", day: "numeric", month: "short" }), d.orders, d.qty, d.revenue])
+      : MONTHS.map((m, i) => r.months.get(i) ? [m, r.months.get(i).orders, r.months.get(i).qty, r.months.get(i).revenue] : null).filter(Boolean);
+    const first = s1.rowCount + 1;
+    list.forEach(v => body(s1.addRow(v), [4], [2, 3]));
+    const last_ = s1.rowCount;
+    const sum = k => list.reduce((n, v) => n + v[k], 0);
+    totalRow(s1.addRow(["Total", { formula: `SUM(B${first}:B${last_})`, result: sum(1) }, { formula: `SUM(C${first}:C${last_})`, result: sum(2) }, { formula: `SUM(D${first}:D${last_})`, result: sum(3) }]));
+    s1.getCell(`D${s1.rowCount}`).numFmt = RUPEE;
+  }
+
+  // 2. Items sold: number, name, price, quantity, sales
+  const s2 = sheet("Items sold", [8, 44, 12, 10, 14]);
+  const h2 = header(s2, ["No.", "Item", "Price", "Sold", "Sales"], 3);
+  s2.pageSetup.printTitlesRow = `${h2.number}:${h2.number}`;
+  const items = r.items.slice().sort(SORTS[state.sort]);
+  const f2 = s2.rowCount + 1;
+  items.forEach(i => body(s2.addRow([i.no ?? "", i.name, i.price, i.qty, i.revenue]), [3, 5], [1, 4]));
+  if (items.length) {
+    const l2 = s2.rowCount;
+    totalRow(s2.addRow(["", "Total", "", { formula: `SUM(D${f2}:D${l2})`, result: r.count }, { formula: `SUM(E${f2}:E${l2})`, result: r.revenue }]));
+    s2.getCell(`E${s2.rowCount}`).numFmt = RUPEE;
+    s2.getCell(`D${s2.rowCount}`).alignment = s2.getCell(`E${s2.rowCount}`).alignment = { horizontal: "right" };
+  } else s2.addRow(["", "No orders in this period."]);
+
+  // 3. Ratings: per-dish averages, then the notes guests left
+  const s3 = sheet("Ratings", [8, 40, 12, 12, 40]);
+  const h3 = header(s3, ["No.", "Dish", "Average", "Ratings"], 3);
+  s3.pageSetup.printTitlesRow = `${h3.number}:${h3.number}`;
+  if (r.rt.rows.length) r.rt.rows.forEach(d => {
+    const row = s3.addRow([d.no ?? "", d.name, Math.round(d.avg * 10) / 10, d.n]);
+    body(row, [], [1, 3, 4]);
+    row.getCell(3).numFmt = '0.0" ★"';
+  });
+  else s3.addRow(["", "No ratings in this period."]);
+  s3.addRow([]);
+  const hn = s3.addRow(["", "Notes from guests"]);
+  hn.getCell(2).font = { bold: true, size: 13, color: { argb: CRIMSON } };
+  header(s3, ["When", "Note", "", "", "Dishes rated"], 99);
+  if (r.rt.notes.length) r.rt.notes.forEach(n => {
+    const row = s3.addRow([noteTime(n.when), n.comment, "", "", n.dishes.map(d => `${d.name} ${starText(d.n)}`).join("\n")]);
+    s3.mergeCells(row.number, 2, row.number, 4);
+    row.eachCell({ includeEmpty: true }, c => { c.alignment = { wrapText: true, vertical: "top" }; c.border = { bottom: thin }; });
+    row.getCell(2).font = { italic: true };
+  });
+  else s3.addRow(["", "No notes from guests in this period."]);
+
+  return wb;
+}
+
+$("#xlsx").addEventListener("click", async () => {
   if (!last) return;
-  const cell = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
-  const rows = [["No.", "Item", "Price", "Quantity sold", "Revenue"]]
-    .concat(last.items.slice().sort(SORTS[state.sort]).map(i => [i.no ?? "", i.name, i.price, i.qty, i.revenue]))
-    .concat([["", "Total", "", last.count, last.revenue]]);
-  const blob = new Blob(["﻿" + rows.map(r => r.map(cell).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
-  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `cafe52-sales-${last.p.file}.csv` });
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  const btn = $("#xlsx");
+  btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    const wb = await buildWorkbook(await loadExcel());
+    const blob = new Blob([await wb.xlsx.writeBuffer()], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `Cafe52-sales-${last.p.file}.xlsx` });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  } catch (err) {
+    console.error("[sales] Excel:", err);
+    alert("Couldn't make the spreadsheet. Check the internet connection and try again.");
+  }
+  btn.disabled = false; btn.textContent = "Download Excel";
+});
+
+// Print: the page has a print layout (sales.html); stamp when it was printed
+$("#print").addEventListener("click", () => {
+  $("#printed").textContent = "Printed " + new Date().toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+  window.print();
 });
 
 /* ---------- events ---------- */

@@ -35,7 +35,8 @@
   .arrow, .ghost { min-width: 44px; min-height: 44px; border-radius: 12px; border: 1.5px solid var(--st-line); background: #fff; cursor: pointer; font: 600 18px var(--st-font); color: var(--st-ink); }
   .ghost { padding: 0 16px; font: 400 15px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; }
   .arrow:disabled, .ghost:disabled { opacity: .4; cursor: default; }
-  .controls .ghost#csv { margin-left: auto; }
+  .out { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .ghost.solid { background: var(--st-brand); border-color: var(--st-brand); color: #fff; }
   h1.period { margin: 0; font: 400 40px/1.1 var(--st-font-strong); letter-spacing: .02em; text-transform: uppercase; color: var(--st-brand); }
   .note { margin: 4px 0 0; font: italic 15px var(--st-font-soft); color: var(--st-muted); }
   .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
@@ -55,7 +56,7 @@
   .c-dishes { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13.5px; }
   .c-dishes b { color: #B7860B; letter-spacing: .05em; }
   @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 760px) { .kpis { grid-template-columns: 1fr 1fr; } h1.period { font-size: 32px; } .controls .ghost#csv { margin-left: 0; } }
+  @media (max-width: 760px) { .kpis { grid-template-columns: 1fr 1fr; } h1.period { font-size: 32px; } .out { margin-left: 0; } }
   h2.tbl-h { margin: 0 0 10px; font: 400 22px var(--st-font-strong); letter-spacing: .06em; text-transform: uppercase; }
   .tbl-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
@@ -78,7 +79,30 @@
   .status { text-align: center; color: var(--st-muted); font: italic 16px var(--st-font-soft); margin: 0; }
   .signin { max-width: 460px; margin: 12vh auto; text-align: center; }
   .signin a { display: inline-block; margin-top: 14px; padding: 14px 24px; border-radius: 14px; background: var(--st-brand); color: #fff; text-decoration: none; font: 400 17px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; }
-  @media print { .tiles, .controls, .top-right a, #csv { display: none !important; } .panel { box-shadow: none; } }
+  .printed { display: none; }
+  /* Print: one clean A4 report of whatever period is on screen */
+  @page { size: A4; margin: 12mm; }
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff; font-size: 12px; }
+    .tiles, .controls-panel, .top-right, .booting, .status, .note { display: none !important; }
+    *, *::before, *::after { box-sizing: border-box; }
+    .top { position: static; padding: 8px 14px; box-shadow: none; }
+    .wrap { width: 100%; margin: 10px 0 0; gap: 10px; }
+    .panel { box-shadow: none; border: 1px solid var(--st-line); border-radius: 10px; padding: 10px 14px; break-inside: avoid-page; }
+    h1.period { font-size: 26px; }
+    .printed { display: block; margin: 2px 0 0; font: italic 12px var(--st-font-soft); color: var(--st-muted); }
+    .kpis { grid-template-columns: repeat(5, 1fr) !important; gap: 8px; margin-top: 8px; }
+    .kpi { padding: 8px 10px; }
+    .kpi b { font-size: 20px; }
+    th, td { padding: 5px 8px; font-size: 12px; }
+    th { position: static; }
+    tr { break-inside: avoid; }
+    .ratings-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+    #comments li { padding: 6px 10px; }
+    #comments p { font-size: 13px; }
+    #by-body tr { cursor: default; }
+  }
 </style>
 
 <div class="tiles" aria-hidden="true"></div>
@@ -97,7 +121,7 @@
 </div>
 
 <div class="wrap" id="report" hidden>
-  <section class="panel">
+  <section class="panel controls-panel">
     <div class="controls">
       <div class="modes" role="group" aria-label="Show sales for">
         <button type="button" data-mode="day" aria-pressed="true">Day</button>
@@ -112,12 +136,16 @@
         <button type="button" class="arrow" id="next" aria-label="Next">›</button>
         <button type="button" class="ghost" id="today">Today</button>
       </div>
-      <button type="button" class="ghost" id="csv" disabled>Download CSV</button>
+      <div class="out">
+        <button type="button" class="ghost" id="print" disabled>Print report</button>
+        <button type="button" class="ghost solid" id="xlsx" disabled>Download Excel</button>
+      </div>
     </div>
   </section>
 
   <section class="panel" id="results" aria-live="polite">
     <h1 class="period" id="period"></h1>
+    <p class="printed" id="printed"></p>
     <p class="note">Every order placed from the menu, except cancelled ones. Prices are what the guest paid for each item.</p>
     <div class="kpis">
       <div class="kpi"><small>Orders</small><b id="k-orders">–</b></div>
@@ -169,5 +197,5 @@
 
 <script src="config.js?v=20260929d"></script>
 <script src="menu-data.js?v=20260929d"></script>
-<script type="module" src="cart/sales.js?v=20260929d"></script>
+<script type="module" src="cart/sales.js?v=20260929e"></script>
 </html>
