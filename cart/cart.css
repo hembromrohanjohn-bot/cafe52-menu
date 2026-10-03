@@ -219,3 +219,12 @@ html.cart-paused .cart-bar-btn[data-cart-act="none"] { cursor: default; }
   font-family: var(--cart-font-strong, inherit); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase;
 }
 .cart-add.is-on { background: var(--cart-accent, #222); color: var(--cart-accent-ink, #fff); }
+
+/* "Customise" and "Repeat last" (dishes with add-ons) */
+.cart-secondary {
+  display: block; width: 100%; min-height: 50px; margin-top: 10px; padding: 0 16px; border-radius: 12px; cursor: pointer;
+  border: 1.5px solid var(--cart-line, #ccc); background: transparent; color: var(--cart-ink, #222);
+  font-family: var(--cart-font-strong, var(--cart-font, system-ui, sans-serif)); font-size: 16px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+}
+.cart-sheet .cart-body > .cart-primary { margin-top: 6px; }
+.cart-review-hint { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--cart-accent, #222); }

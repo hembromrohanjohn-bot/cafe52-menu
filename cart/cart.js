@@ -10,7 +10,8 @@
  *   4. Optionally has an element with a data-cart-table attribute (kept hidden) where "Table 12" is shown.
  *   5. Optionally offers add-ons in the cart (e.g. pizza toppings): MENU_CONFIG.getExtras(itemId) returns
  *      [{ id, name, price }] for items that take them, and MENU_CONFIG.extrasLabel names them ("toppings").
- *      Add-ons belong to a cart line and apply to each unit in it.
+ *      Add-ons belong to a cart line and apply to each unit in it; the same dish with different add-ons is a separate line.
+ *      Dishes with add-ons open "Customise" when added, and + on them offers "Repeat last" or "Choose again".
  *
  * The table comes from the link, e.g. .../darios/?table=12 (numbers or short codes like T12 or B3).
  * Each table gets its own saved cart. With no table in the link guests can still browse and build an
@@ -43,15 +44,20 @@
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = n => (C.currency || "₹") + Math.round(n).toLocaleString(C.locale || "en-IN");
-  const lineKey = (id, variant) => (variant ? id + "|" + variant : id);
+  // A line is one dish + option + set of add-ons: the same dish with different add-ons is a separate line
+  const lineKey = (id, variant, extras) => (variant ? id + "|" + variant : id)
+    + (extras && extras.length ? "+" + extras.map(e => e.id).sort().join(",") : "");
   const isSoldOut = (id, name) => soldOut.has(id) || soldOut.has(name);
 
   // Add-ons offered in the cart for an item, or null
   function extrasFor(id) {
     if (typeof C.getExtras !== "function") return null;
-    try { const list = C.getExtras(id); return Array.isArray(list) && list.length ? list : null; } catch (_) { return null; }
+    try {
+      const list = (C.getExtras(id) || []).filter(e => e && !isSoldOut(e.id, e.name));   // staff can mark an add-on sold out too
+      return list.length ? list : null;
+    } catch (_) { return null; }
   }
-  const EXTRAS = C.extrasLabel || "extras";
+  const ADDON_LABEL = C.extrasLabel || "extras";   // what add-ons are called, e.g. "toppings"
   const eachPrice = l => l.unitPrice + (l.extras || []).reduce((s, e) => s + e.price, 0);
 
   /* ---------- Table ---------- */
@@ -142,11 +148,14 @@
   function setSoldOut(ids) {
     soldOut = new Set([...fixedSoldOut, ...ids]);
     const gone = lines.filter(l => isSoldOut(l.id, l.name));
-    if (gone.length) {
+    const goneExtras = [];
+    lines.forEach(l => { const keep = (l.extras || []).filter(e => !isSoldOut(e.id, e.name)); if (keep.length !== (l.extras || []).length) { goneExtras.push(...l.extras.filter(e => !keep.includes(e))); l.extras = keep; } });
+    if (goneExtras.length) { rekey(); save(); }
+    if (gone.length || goneExtras.length) {
       lines = lines.filter(l => !gone.includes(l));
       save();
-      const names = [...new Set(gone.map(l => l.name))].join(", ");
-      live.textContent = `Sorry, ${names} ${gone.length === 1 ? "is" : "are"} now sold out and ${gone.length === 1 ? "was" : "were"} taken out of your order.`;
+      const list = [...new Set([...gone, ...goneExtras].map(l => l.name))], one = list.length === 1;
+      live.textContent = `Sorry, ${list.join(", ")} ${one ? "is" : "are"} now sold out and ${one ? "was" : "were"} taken out of your order.`;
       alert(live.textContent);
     }
     refresh();
@@ -330,13 +339,26 @@
           price = v.price;
         }
         if (!Number.isFinite(price)) return false;
-        Object.assign(l, { key: lineKey(l.id, l.variant), name: item.name, unitPrice: price, qty: Math.min(l.qty, MAX_QTY) });
+        Object.assign(l, { name: item.name, unitPrice: price, qty: Math.min(l.qty, MAX_QTY) });
         // Keep only add-ons still offered, at today's prices
         const offered = extrasFor(l.id) || [];
         l.extras = l.extras.map(e => offered.find(o => o.id === e.id)).filter(Boolean).map(o => ({ id: o.id, name: o.name, price: o.price }));
         return true;
       });
     }
+    rekey();
+  }
+
+  // Recompute every line's key from its dish, option and add-ons, and merge lines that became the same
+  function rekey() {
+    const out = [];
+    for (const l of lines) {
+      l.key = lineKey(l.id, l.variant, l.extras);
+      const same = out.find(x => x.key === l.key);
+      if (same) same.qty = Math.min(MAX_QTY, same.qty + l.qty);
+      else out.push(l);
+    }
+    lines = out;
   }
 
   function save() {
@@ -384,11 +406,20 @@
     qty = Math.max(0, Math.min(MAX_QTY, qty));
     const i = lines.findIndex(l => l.key === key);
     if (i === -1) {
-      if (qty > 0 && item) lines.push({ key, id: item.id, name: item.name, variant: item.variant || null, unitPrice: item.price, qty, extras: [] });
+      if (qty > 0 && item) lines.push({ key, id: item.id, name: item.name, variant: item.variant || null, unitPrice: item.price, qty, extras: item.extras || [] });
     } else if (qty === 0) lines.splice(i, 1);
     else lines[i].qty = qty;
     save();
     refresh();
+  }
+
+  // Add one of a dish with these add-ons: joins the line with the same add-ons, or starts a new one
+  function addCombo(it, extras) {
+    const ex = extras.map(o => ({ id: o.id, name: o.name, price: o.price }));
+    const key = lineKey(it.id, null, ex);
+    setQty(key, qtyOf(key) + 1, { id: it.id, name: it.name, price: it.price, extras: ex });
+    lastCombo[it.id] = ex.map(e => e.id);
+    live.textContent = `Added ${it.name}${ex.length ? " with " + ex.map(e => e.name).join(", ") : ""}. ${totals().count} in your order.`;
   }
 
   const qtyOf = key => (lines.find(l => l.key === key) || { qty: 0 }).qty;
@@ -485,6 +516,15 @@
       const n = countForItem(it.id);
       return `<button type="button" class="cart-add" data-cart-act="choose" aria-haspopup="dialog" aria-label="Add ${esc(it.name)}, choose an option${n ? `, ${n} in your order` : ""}">+ Add${n ? `<span class="cart-badge">${n}</span>` : ""}</button>`;
     }
+    if (extrasFor(it.id)) {
+      // Dishes with add-ons: + Add opens "Customise"; + again offers "Repeat last" or "Choose again"
+      const n = countForItem(it.id);
+      return n
+        ? `<div class="cart-step" role="group" aria-label="${esc(it.name)}, ${n} in your order">`
+          + `<button type="button" data-cart-act="cdec" aria-label="One less ${esc(it.name)}">−</button><span class="cart-qty" aria-hidden="true">${n}</span>`
+          + `<button type="button" data-cart-act="cinc" aria-haspopup="dialog" aria-label="One more ${esc(it.name)}"${n >= MAX_QTY ? " disabled" : ""}>+</button></div>`
+        : `<button type="button" class="cart-add" data-cart-act="custom" aria-haspopup="dialog" aria-label="Add ${esc(it.name)}, choose add-ons">+ Add</button>`;
+    }
     const q = qtyOf(it.id);
     return q ? stepperHTML(it.id, q, it.name) : `<button type="button" class="cart-add" data-cart-act="add" aria-label="Add ${esc(it.name)} to your order">+ Add</button>`;
   }
@@ -517,8 +557,11 @@
   /* ---------- Floating bar and order sheet ---------- */
 
   let bar, barBtn, sheet, panel, titleEl, bodyEl, footEl, linesEl, sumEl, notesEl, live;
-  let view = "review";   // "review" | "choose" | "extras" | "sent" | "status"
+  let view = "review";   // "review" | "choose" | "extras" | "custom" | "repeat" | "sent" | "status"
   let extrasKey = null;  // the cart line whose add-ons are being chosen
+  let customItem = null, customPick = [];   // "Customise": the dish being added and the add-ons ticked so far
+  const lastCombo = {};                     // dish id → the add-on ids it was last added with (for "Repeat last")
+  let reviewHint = "";                      // a one-off note at the top of the order (e.g. which line to remove)
   let sentId = null;
   let chooseItem = null, sending = false, error = "", opener = null;
   let whereEl, pausedEl;
@@ -597,7 +640,7 @@
       + `<span class="cart-line-each">${money(eachPrice(l))} each</span>`
       + `<button type="button" class="cart-remove" data-cart-act="remove" data-key="${esc(l.key)}" aria-label="Remove ${esc(l.name)}${l.variant ? ` (${esc(l.variant)})` : ""}">Remove</button></div>`
       + (offered ? `<button type="button" class="cart-extras-btn" data-cart-act="extras" data-key="${esc(l.key)}" aria-haspopup="dialog">`
-        + (ex.length ? `Change ${esc(EXTRAS)} (${ex.length})` : `+ Add ${esc(EXTRAS)}`) + "</button>" : "")
+        + (ex.length ? `Change ${esc(ADDON_LABEL)} (${ex.length})` : "Customise") + "</button>" : "")
       + "</div>";
   }
 
@@ -620,8 +663,8 @@
       const l = lines.find(x => x.key === extrasKey), offered = l && extrasFor(l.id);
       if (l && offered) {
         const on = id => (l.extras || []).some(e => e.id === id);
-        titleEl.textContent = `${EXTRAS.charAt(0).toUpperCase() + EXTRAS.slice(1)} for ${l.name}`;
-        paint(bodyEl, `<p class="cart-hint">Tap to add or remove.${l.qty > 1 ? ` They’re added to each of the ${l.qty} ${esc(l.name)} in this line.` : ""}</p>`
+        titleEl.textContent = `${ADDON_LABEL.charAt(0).toUpperCase() + ADDON_LABEL.slice(1)} for ${l.name}`;
+        paint(bodyEl, `<p class="cart-hint">Tap to add or remove.${l.qty > 1 ? ` They’re added to each of the ${l.qty} ${esc(l.name)} in this line. For different add-ons on one of them, add it again from the menu.` : ""}</p>`
           + offered.map(o => `<div class="cart-option"><span class="cart-option-name">${esc(o.name)}</span><span class="cart-option-price">+${money(o.price)}</span>`
             + `<button type="button" class="cart-add${on(o.id) ? " is-on" : ""}" data-cart-act="toggle-extra" data-id="${esc(o.id)}" aria-pressed="${on(o.id)}" aria-label="${esc(o.name)}">${on(o.id) ? "✓ Added" : "+ Add"}</button></div>`).join(""));
         paint(footEl, `<button type="button" class="cart-primary" data-cart-act="extras-done">Done · ${money(eachPrice(l))} each</button>`);
@@ -630,6 +673,26 @@
       view = "review";   // the line was removed: back to the order
       painted.delete(bodyEl);
       bodyEl.innerHTML = "";
+    }
+    if (view === "custom" && customItem) {
+      const offered = extrasFor(customItem.id) || [];
+      const picked = offered.filter(o => customPick.includes(o.id));
+      titleEl.textContent = `Customise ${customItem.name}`;
+      paint(bodyEl, `<p class="cart-hint">Add anything you like, or nothing. ${money(customItem.price)} without add-ons.</p>`
+        + offered.map(o => `<div class="cart-option"><span class="cart-option-name">${esc(o.name)}</span><span class="cart-option-price">+${money(o.price)}</span>`
+          + `<button type="button" class="cart-add${customPick.includes(o.id) ? " is-on" : ""}" data-cart-act="pick" data-id="${esc(o.id)}" aria-pressed="${customPick.includes(o.id)}" aria-label="${esc(o.name)}">${customPick.includes(o.id) ? "✓ Added" : "+ Add"}</button></div>`).join(""));
+      paint(footEl, `<button type="button" class="cart-primary" data-cart-act="custom-add">Add item · ${money(customItem.price + picked.reduce((n, o) => n + o.price, 0))}</button>`);
+      return;
+    }
+    if (view === "repeat" && customItem) {
+      const offered = extrasFor(customItem.id) || [];
+      const last = (lastCombo[customItem.id] || []).map(id => offered.find(o => o.id === id)).filter(Boolean);
+      titleEl.textContent = `Another ${customItem.name}?`;
+      paint(bodyEl, `<p class="cart-hint">Your last one had ${last.length ? esc(last.map(o => o.name).join(", ")) : "no add-ons"}.</p>`
+        + `<button type="button" class="cart-primary" data-cart-act="repeat">Repeat last · ${money(customItem.price + last.reduce((n, o) => n + o.price, 0))}</button>`
+        + `<button type="button" class="cart-secondary" data-cart-act="custom-new">Choose add-ons again</button>`);
+      paint(footEl, '<button type="button" class="cart-secondary" data-cart-act="close">Cancel</button>');
+      return;
     }
     if (view === "sent") {
       titleEl.textContent = "Order sent!";
@@ -668,6 +731,7 @@
     const t = totals();
     const active = activeOrders();
     paint(whereEl, (table ? `<p class="cart-table-pill">Table ${esc(table)}</p>` : "")
+      + (reviewHint ? `<p class="cart-hint cart-review-hint">${esc(reviewHint)}</p>` : "")
       + (active.length ? `<button type="button" class="cart-track-link" data-cart-act="status">Earlier order #${esc(active[0].code)}: ${esc(STATUS[active[0].status].label)}. Track it</button>` : ""));
     pausedEl.hidden = !paused || !lines.length;
     bodyEl.querySelector(".cart-notes").hidden = !lines.length;
@@ -705,6 +769,7 @@
 
   function closeSheet() {
     if (sheet.hidden) return;
+    reviewHint = "";
     sheet.hidden = true;
     doc.classList.remove("cart-lock");
     if (view === "sent") view = "review";
@@ -774,7 +839,7 @@
   function refocus(scope, key, act) {
     const pick = sel => scope && scope.querySelector(sel);
     const el = (key && (pick(`[data-cart-act="${act}"][data-key="${CSS.escape(key)}"]`) || pick(`[data-key="${CSS.escape(key)}"]`)))
-      || pick('[data-cart-act="inc"]') || pick('[data-cart-act="add"], [data-cart-act="choose"]');
+      || pick('[data-cart-act="inc"], [data-cart-act="cinc"]') || pick('[data-cart-act="add"], [data-cart-act="choose"], [data-cart-act="custom"]');
     if (el) el.focus();
     else if (!sheet.hidden) titleEl.focus();
   }
@@ -828,6 +893,8 @@
       if (!o) return;
       const has = l.extras.some(e => e.id === o.id);
       l.extras = has ? l.extras.filter(e => e.id !== o.id) : [...l.extras, { id: o.id, name: o.name, price: o.price }];
+      extrasKey = lineKey(l.id, l.variant, l.extras);   // the line's key follows its add-ons (merging with an identical line)
+      rekey();
       pendingId = null;
       save();
       refresh();
@@ -835,6 +902,39 @@
       bodyEl.querySelector(`[data-cart-act="toggle-extra"][data-id="${CSS.escape(o.id)}"]`)?.focus();
     } else if (act === "extras-done") {
       showView("review");
+    } else if (act === "custom" && itemEl) {
+      customItem = readItem(itemEl); customPick = [];
+      openSheet("custom", b);
+    } else if (act === "pick" && customItem) {
+      const id = b.dataset.id;
+      customPick = customPick.includes(id) ? customPick.filter(x => x !== id) : [...customPick, id];
+      refresh();
+      bodyEl.querySelector(`[data-cart-act="pick"][data-id="${CSS.escape(id)}"]`)?.focus();
+    } else if (act === "custom-add" || act === "repeat") {
+      const offered = extrasFor(customItem.id) || [];
+      const ids = act === "repeat" ? (lastCombo[customItem.id] || []) : customPick;
+      addCombo(customItem, offered.filter(o => ids.includes(o.id)));
+      closeSheet();
+    } else if (act === "custom-new" && customItem) {
+      customPick = [];
+      showView("custom");
+    } else if (act === "cinc" && itemEl) {
+      customItem = readItem(itemEl);
+      if (!lastCombo[customItem.id]) {   // e.g. after a reload: the most recent line for this dish
+        const l = [...lines].reverse().find(x => x.id === customItem.id);
+        lastCombo[customItem.id] = l ? (l.extras || []).map(e => e.id) : [];
+      }
+      openSheet("repeat", b);
+    } else if (act === "cdec" && itemEl) {
+      const it = readItem(itemEl), mine = lines.filter(l => l.id === it.id);
+      if (mine.length === 1) {
+        setQty(mine[0].key, mine[0].qty - 1);
+        live.textContent = mine[0].qty ? `${it.name}: ${mine[0].qty} in your order.` : `Removed ${it.name}.`;
+        refocus(itemEl.querySelector(":scope > .cart-ctl"), null, "cinc");
+      } else {
+        reviewHint = `You have ${it.name} with different add-ons. Use − on the one you want to remove.`;
+        openSheet("review", b);
+      }
     }
   }
 

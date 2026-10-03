@@ -82,10 +82,9 @@ const starText = n => "★".repeat(n) + "☆".repeat(5 - n);
 // Adds up guest ratings: per-dish averages (best first), the overall average, and the notes guests left
 function rateData(list) {
   const names = {};
-  // MENU and EXTRAS come from menu-data.js (top-level consts, so not on window)
+  // MENU comes from menu-data.js (a top-level const, so not on window)
   for (const secs of Object.values(typeof MENU !== "undefined" ? MENU : {}))
     for (const [, , groups] of secs) for (const [, , items] of groups) for (const [no, name] of items) names["item-" + no] = name;
-  for (const [no, name] of (typeof EXTRAS !== "undefined" ? EXTRAS[2] : [])) names["item-" + no] = name;
   const byDish = new Map();
   for (const r of list) for (const [id, n] of Object.entries(r.items || {})) {
     const d = byDish.get(id) || { id, no: dishNo(id), name: names[id] || id, s: 0, n: 0 };

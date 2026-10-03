@@ -1,6 +1,6 @@
 // Staff screen: mark dishes sold out. The list lives at restaurants/{restaurantId}/public/soldout as dish ids
 // ("item-106"); guests' menus follow it live, show "Sold out" and take those dishes out of their baskets.
-// Needs MENU and EXTRAS (menu-data.js) and window.MENU_CONFIG (config.js) loaded first.
+// Needs MENU and ADDONS (menu-data.js) and window.MENU_CONFIG (config.js) loaded first. Add-ons can be marked sold out too.
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";
 const { initializeApp, getApps } = await import(SDK + "firebase-app.js");
 const { getAuth, onAuthStateChanged } = await import(SDK + "firebase-auth.js");
@@ -20,7 +20,7 @@ for (const secs of Object.values(MENU))
   for (const [title, , groups] of secs)
     for (const [glabel, , items] of groups)
       for (const [no, name] of items) DISHES.push({ id: "item-" + no, no, name, section: glabel ? `${title} · ${glabel}` : title });
-for (const [no, name] of EXTRAS[2]) DISHES.push({ id: "item-" + no, no, name, section: EXTRAS[0] });
+for (const [key, [name]] of Object.entries(ADDONS)) DISHES.push({ id: "addon-" + key, no: null, name, section: "Add-ons" });
 const byId = Object.fromEntries(DISHES.map(d => [d.id, d]));
 
 let soldOut = new Set();
@@ -60,7 +60,7 @@ function paint() {
   const list = DISHES.filter(d => soldOut.has(d.id));
   $("#so-summary").textContent = list.length ? `${list.length} dish${list.length === 1 ? "" : "es"} sold out` : "Everything is available";
   $("#so-chips").innerHTML = list.map(d =>
-    `<button type="button" class="so-chip" data-id="${d.id}" title="Tap when it's available again"${busy.has(d.id) ? " disabled" : ""}>${esc(d.name)} <small>No. ${d.no}</small><span aria-hidden="true">×</span><span class="sr">, make available again</span></button>`).join("");
+    `<button type="button" class="so-chip" data-id="${d.id}" title="Tap when it's available again"${busy.has(d.id) ? " disabled" : ""}>${esc(d.name)} <small>${d.no ? "No. " + d.no : "Add-on"}</small><span aria-hidden="true">×</span><span class="sr">, make available again</span></button>`).join("");
   if ($("#so-dialog").open) paintList();
 }
 
@@ -68,11 +68,11 @@ function paintList() {
   const q = $("#so-q").value.trim().toLowerCase();
   let html = "", last = "";
   for (const d of DISHES) {
-    if (q && !`${d.no} ${d.name} ${d.section}`.toLowerCase().includes(q)) continue;
+    if (q && !`${d.no ?? ""} ${d.name} ${d.section}`.toLowerCase().includes(q)) continue;
     if (d.section !== last) { html += `<h3>${esc(d.section)}</h3>`; last = d.section; }
     const out = soldOut.has(d.id);
     html += `<button type="button" class="so-row${out ? " out" : ""}" data-id="${d.id}" aria-pressed="${out}"${busy.has(d.id) ? " disabled" : ""}>`
-      + `<span class="so-name">${esc(d.name)}<small>No. ${d.no}</small></span><span class="so-state">${busy.has(d.id) ? "Saving…" : out ? "Sold out" : "Available"}</span></button>`;
+      + `<span class="so-name">${esc(d.name)}<small>${d.no ? "No. " + d.no : "Add-on"}</small></span><span class="so-state">${busy.has(d.id) ? "Saving…" : out ? "Sold out" : "Available"}</span></button>`;
   }
   $("#so-list").innerHTML = html || '<p class="none">No dish matches that search.</p>';
 }
