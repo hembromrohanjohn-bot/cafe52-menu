@@ -226,3 +226,8 @@ const DESCRIPTIONS = {
   118: "Veg cutlet with a melty cheese centre.",
   119: "Chicken cutlet with a melty cheese centre.",
 };
+
+// Dish photos, by menu number: shown across the top of the dish, and full size when tapped. Files live in img/.
+const PHOTOS = {
+  84: "img/dish-84.jpg",   // Chicken Cheese Pizza
+};

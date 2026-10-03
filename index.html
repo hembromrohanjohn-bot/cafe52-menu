@@ -136,6 +136,15 @@ section.sec { margin-top: 22px; background: var(--card); border-radius: 18px; ov
 .nm .t { font: 600 15.5px/1.35 var(--sans); color: var(--ink); }
 .nm .no { display: block; margin-top: 2px; font: 500 12px var(--sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .nm .tag { margin-left: 6px; vertical-align: 1px; }
+/* Dish photo: a banner across the top of the dish; tap for full size */
+.item > .ph { grid-column: 1 / -1; display: block; width: 100%; aspect-ratio: 16 / 9; margin: 2px 0 2px; padding: 0; border: 0; border-radius: 14px; overflow: hidden; cursor: zoom-in; background: var(--card-2); }
+.item > .ph img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 62% 55%; }
+.photo-view { width: min(560px, calc(100% - 24px)); padding: 0; border: 0; border-radius: 18px; background: var(--slate); color: #fff; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6); border-top: 5px solid var(--gold); }
+.photo-view::backdrop { background: rgba(10,12,16,.85); }
+.photo-view img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 160px); object-fit: contain; background: #000; }
+.photo-view .pv-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 10px 12px 18px; }
+.photo-view b { font: 400 22px var(--display); letter-spacing: .03em; text-transform: uppercase; color: var(--gold); }
+.photo-view button { width: 44px; height: 44px; border: 0; background: none; color: var(--ink-soft); font-size: 30px; cursor: pointer; }
 .nm .d { display: block; margin-top: 3px; font: italic 500 13.5px/1.4 var(--serif); color: #C9D1DA; }
 .nm .addon-hint { display: block; margin-top: 3px; font: 500 12px var(--sans); color: var(--gold); opacity: .85; }
 .item .price { font: 400 19px var(--display); letter-spacing: .04em; font-variant-numeric: tabular-nums; white-space: nowrap; color: #fff; text-align: right; }
@@ -269,7 +278,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
         <button role="tab" aria-selected="false" data-tab="drinks">Drinks</button>
       </div>
       <div class="row2">
-        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" aria-label="Search the menu" placeholder="Search dishes or ingredients" autocomplete="off"></label>
+        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" aria-label="Search the menu" placeholder="Search the menu" autocomplete="off"></label>
         <div class="diet" role="group" aria-label="Diet">
           <button type="button" data-diet="veg" aria-pressed="false" aria-label="Veg only"><span class="mark veg" aria-hidden="true"></span><span class="lbl">Veg</span></button>
           <button type="button" data-diet="nonveg" aria-pressed="false" aria-label="Non-veg only"><span class="mark nonveg" aria-hidden="true"></span><span class="lbl">Non-veg</span></button>
@@ -291,7 +300,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
   </footer>
 </div>
 
-<script src="menu-data.js?v=20261003c"></script>
+<script src="menu-data.js?v=20261003d"></script>
 <script>
 /* Dishes, prices, diet marks and add-ons live in menu-data.js (MENU and ADDONS). */
 
@@ -342,8 +351,10 @@ function starsHTML(no) {
 window.renderRatings = () => render();
 const descOf = no => (typeof DESCRIPTIONS !== "undefined" && DESCRIPTIONS[no]) || "";
 function itemHTML([no, name, price, d]) {
-  const desc = descOf(no);
-  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}${desc ? `<span class="d">${esc(desc)}</span>` : ""}<span class="no">No. ${no}${starsHTML(no)}</span>${addonHint(no)}</div></div><div class="price">${price}</div></div>`;
+  const desc = descOf(no), photo = typeof PHOTOS !== "undefined" && PHOTOS[no];
+  return `<div class="item${photo ? " has-photo" : ""}"${cartAttrs(no)}>`
+    + (photo ? `<button type="button" class="ph" data-photo="${esc(photo)}" data-name="${esc(name)}" aria-label="See a photo of ${esc(name)}"><img src="${esc(photo)}" alt="${esc(name)}" loading="lazy" decoding="async"></button>` : "")
+    + `<div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}${desc ? `<span class="d">${esc(desc)}</span>` : ""}<span class="no">No. ${no}${starsHTML(no)}</span>${addonHint(no)}</div></div><div class="price">${price}</div></div>`;
 }
 
 function emptyHTML(q) {
@@ -438,6 +449,22 @@ document.querySelector(".diet").addEventListener("click", e => {
   $("#live").textContent = state.diet === "all" ? `Showing all ${n} dishes` : `Showing ${n} ${state.diet === "veg" ? "vegetarian" : "non-vegetarian"} dishes`;
 });
 $("#chips").addEventListener("click", e => { const c = e.target.closest(".chip"); if (c) jumpTo(c.dataset.target); });
+// Tap a dish photo: show it full size
+let photoView = null;
+$("#pages").addEventListener("click", e => {
+  const ph = e.target.closest(".ph"); if (!ph) return;
+  if (!photoView) {
+    photoView = document.createElement("dialog");
+    photoView.className = "photo-view";
+    photoView.innerHTML = '<img alt=""><div class="pv-bar"><b></b><button type="button" aria-label="Close">×</button></div>';
+    photoView.addEventListener("click", ev => { if (ev.target === photoView || ev.target.closest("button")) photoView.close(); });
+    document.body.append(photoView);
+  }
+  photoView.querySelector("img").src = ph.dataset.photo;
+  photoView.querySelector("img").alt = ph.dataset.name;
+  photoView.querySelector("b").textContent = ph.dataset.name;
+  photoView.showModal();
+});
 $("#pages").addEventListener("click", e => {
   const go = e.target.closest("[data-go]");
   if (go) { state.tab = go.dataset.go; render(); toTop(); saveState(); }
