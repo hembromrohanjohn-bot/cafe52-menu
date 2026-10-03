@@ -55,6 +55,8 @@
   .c-meta { margin-top: 6px; font-size: 13px; color: var(--st-muted); }
   .c-dishes { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13.5px; }
   .c-dishes b { color: #B7860B; letter-spacing: .05em; }
+  .c-meta a { color: var(--st-brand); font-weight: 600; text-decoration: none; }
+  #comments p.c-none { font-style: normal; color: var(--st-muted); font-size: 14px; }
   @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) { .kpis { grid-template-columns: 1fr 1fr; } h1.period { font-size: 32px; } .out { margin-left: 0; } }
   h2.tbl-h { margin: 0 0 10px; font: 400 22px var(--st-font-strong); letter-spacing: .06em; text-transform: uppercase; }
@@ -179,7 +181,7 @@
       </div>
     </section>
     <section class="panel">
-      <h2 class="tbl-h">Notes from guests</h2>
+      <h2 class="tbl-h">Reviews from guests</h2>
       <ul id="comments"></ul>
     </section>
   </div>
@@ -195,7 +197,7 @@
   </section>
 </div>
 
-<script src="config.js?v=20260929d"></script>
+<script src="config.js?v=20261003a"></script>
 <script src="menu-data.js?v=20260929d"></script>
-<script type="module" src="cart/sales.js?v=20260929e"></script>
+<script type="module" src="cart/sales.js?v=20261003a"></script>
 </html>

@@ -182,6 +182,22 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
 .rate-comment span { font-weight: 400; color: var(--ink-soft); }
 .rate-comment textarea { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: #3A4552; color: #fff; font: 16px/1.4 var(--sans); resize: vertical; }
 .rate-comment textarea:focus { outline: none; border-color: var(--gold); }
+.rate-phone { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; }
+.rate-phone > span:first-of-type { font-weight: 400; color: var(--ink-soft); }
+.rate-phone-in { display: flex; align-items: stretch; margin-top: 6px; border-radius: 10px; border: 1.5px solid var(--line); background: #3A4552; overflow: hidden; }
+.rate-phone-in:focus-within { border-color: var(--gold); }
+.rate-phone-in > span { display: grid; place-items: center; padding: 0 12px; background: rgba(0,0,0,.2); color: var(--ink-soft); font: 600 16px var(--sans); }
+.rate-phone-in input { flex: 1; min-width: 0; min-height: 46px; padding: 0 12px; border: 0; background: none; color: #fff; font: 600 17px var(--sans); letter-spacing: .06em; }
+.rate-phone-in input:focus { outline: none; }
+.rate-phone-in input::placeholder { color: #AEB8C4; letter-spacing: 0; font-weight: 400; }
+.rate-phone-in:has(input[aria-invalid="true"]) { border-color: #FF8A9A; }
+.rate-phone small { display: block; margin-top: 6px; font: italic 500 13px/1.4 var(--serif); color: var(--ink-soft); }
+.rate-google { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid var(--line); text-align: center; }
+.rate-google p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.45; }
+.rate-google b { color: var(--gold); }
+.rate-google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px; border-radius: 12px; border: 0; cursor: pointer; background: #fff; color: #1F1F1F; font: 600 16px var(--sans); }
+.rate-google-btn svg { width: 22px; height: 22px; }
+.rate-copied { margin: 10px 0 0 !important; font-size: 13.5px !important; color: var(--gold); }
 .rate-foot { padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
 .rate-send { width: 100%; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: var(--crimson); color: #fff; border-bottom: 3px solid var(--gold); font: 400 18px var(--display); letter-spacing: .1em; text-transform: uppercase; }
 .rate-send:disabled { opacity: .5; cursor: default; }
@@ -428,8 +444,8 @@ window.addEventListener("resize", () => { document.documentElement.style.scrollP
 }
 render();
 </script>
-<script src="config.js?v=20260929d"></script>
+<script src="config.js?v=20261003a"></script>
 <script src="cart/cart.js?v=20260929d" charset="utf-8"></script>
-<script type="module" src="cart/ratings.js?v=20260929d"></script>
+<script type="module" src="cart/ratings.js?v=20261003a"></script>
 </body>
 </html>

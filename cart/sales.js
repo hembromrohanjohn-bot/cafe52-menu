@@ -93,9 +93,10 @@ function rateData(list) {
   }
   const rows = [...byDish.values()].map(d => ({ ...d, avg: d.s / d.n })).sort((a, b) => b.avg - a.avg || b.n - a.n);
   const all = rows.reduce((t, d) => ({ s: t.s + d.s, n: t.n + d.n }), { s: 0, n: 0 });
-  const notes = list.filter(r => r.comment).map(r => ({
+  const notes = list.filter(r => r.comment || r.phone).map(r => ({
     when: r.createdAt?.toDate ? r.createdAt.toDate() : null,
-    comment: r.comment,
+    comment: r.comment || "",
+    phone: r.phone || "",
     dishes: Object.entries(r.items || {}).map(([id, n]) => ({ name: names[id] || id, n }))
   }));
   return { rows, avg: all.n ? all.s / all.n : null, count: all.n, notes };
@@ -108,9 +109,10 @@ function paintRatings(rt) {
     ? rt.rows.map(d => `<tr><td class="no">${d.no ?? ""}</td><td class="nm">${esc(d.name)}</td><td class="r stars">★ ${d.avg.toFixed(1)}</td><td class="r">${num(d.n)}</td></tr>`).join("")
     : '<tr><td colspan="4" class="none">No ratings yet for this period.</td></tr>';
   $("#comments").innerHTML = rt.notes.length
-    ? rt.notes.map(r => `<li><p>“${esc(r.comment)}”</p><div class="c-meta">${esc(noteTime(r.when))}</div><div class="c-dishes">`
+    ? rt.notes.map(r => `<li>${r.comment ? `<p>“${esc(r.comment)}”</p>` : '<p class="c-none">No review written</p>'}<div class="c-meta">${esc(noteTime(r.when))}`
+        + (r.phone ? ` · <a href="tel:+91${esc(r.phone)}">+91 ${esc(r.phone.slice(0, 5))} ${esc(r.phone.slice(5))}</a>` : "") + `</div><div class="c-dishes">`
         + r.dishes.map(d => `<span title="${esc(STAR_WORDS[d.n])}">${esc(d.name)} <b>${starText(d.n)}</b></span>`).join("") + "</div></li>").join("")
-    : '<li class="none">No notes from guests in this period.</li>';
+    : '<li class="none">No reviews from guests in this period.</li>';
 }
 
 function tally(orders) {
@@ -324,7 +326,7 @@ async function buildWorkbook(ExcelJS) {
   } else s2.addRow(["", "No orders in this period."]);
 
   // 3. Ratings: per-dish averages, then the notes guests left
-  const s3 = sheet("Ratings", [8, 40, 12, 12, 40]);
+  const s3 = sheet("Ratings", [17, 40, 12, 16, 40]);
   const h3 = header(s3, ["No.", "Dish", "Average", "Ratings"], 3);
   s3.pageSetup.printTitlesRow = `${h3.number}:${h3.number}`;
   if (r.rt.rows.length) r.rt.rows.forEach(d => {
@@ -334,16 +336,16 @@ async function buildWorkbook(ExcelJS) {
   });
   else s3.addRow(["", "No ratings in this period."]);
   s3.addRow([]);
-  const hn = s3.addRow(["", "Notes from guests"]);
+  const hn = s3.addRow(["", "Reviews from guests"]);
   hn.getCell(2).font = { bold: true, size: 13, color: { argb: CRIMSON } };
-  header(s3, ["When", "Note", "", "", "Dishes rated"], 99);
+  header(s3, ["When", "Review", "", "Phone", "Dishes rated"], 99);
   if (r.rt.notes.length) r.rt.notes.forEach(n => {
-    const row = s3.addRow([noteTime(n.when), n.comment, "", "", n.dishes.map(d => `${d.name} ${starText(d.n)}`).join("\n")]);
-    s3.mergeCells(row.number, 2, row.number, 4);
+    const row = s3.addRow([noteTime(n.when), n.comment, "", n.phone ? `+91 ${n.phone}` : "", n.dishes.map(d => `${d.name} ${starText(d.n)}`).join("\n")]);
+    s3.mergeCells(row.number, 2, row.number, 3);
     row.eachCell({ includeEmpty: true }, c => { c.alignment = { wrapText: true, vertical: "top" }; c.border = { bottom: thin }; });
     row.getCell(2).font = { italic: true };
   });
-  else s3.addRow(["", "No notes from guests in this period."]);
+  else s3.addRow(["", "No reviews from guests in this period."]);
 
   return wb;
 }

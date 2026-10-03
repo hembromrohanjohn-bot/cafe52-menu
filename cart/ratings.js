@@ -44,7 +44,9 @@ function paintPrompt() {
     + `<button type="button" class="rate-open" data-rate="${esc(o.id)}">Rate it</button>`;
 }
 document.addEventListener("cart:orders", paintPrompt);
-paintPrompt();
+// cart.js loads this phone's orders when the page has finished loading, which can be after this script runs
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(paintPrompt));
+else setTimeout(paintPrompt);
 setInterval(paintPrompt, 60e3);
 
 /* ---------- the rating sheet ---------- */
@@ -90,7 +92,10 @@ function paintDialog() {
       + `<span class="rate-stars" role="radiogroup" aria-label="Rating for ${esc(d.name)}">`
       + [1, 2, 3, 4, 5].map(n => `<button type="button" role="radio" aria-checked="${c.stars[d.id] === n}" aria-label="${n} star${n > 1 ? "s" : ""}, ${WORDS[n]}" data-star="${n}" class="${(c.stars[d.id] || 0) >= n ? "on" : ""}">★</button>`).join("")
       + `</span><span class="rate-word">${WORDS[c.stars[d.id] || 0]}</span></div>`).join("")
-    + '<label class="rate-comment">Anything to tell the kitchen? <span>(optional, only staff see this)</span><textarea rows="2" maxlength="300"></textarea></label>';
+    + '<label class="rate-comment">Write a review <span>(optional)</span><textarea rows="3" maxlength="500" placeholder="What did you like? What could be better?"></textarea></label>'
+    + '<label class="rate-phone">Your mobile number <span>(optional)</span><span class="rate-phone-in"><span aria-hidden="true">+91</span>'
+    + '<input type="tel" inputmode="numeric" maxlength="16" autocomplete="tel-national" placeholder="10-digit number" aria-describedby="rate-phone-why"></span>'
+    + '<small id="rate-phone-why">Only Café 52 sees it, to thank you or follow up on your review. We never share it.</small></label>';
   paintFoot();
 }
 function paintFoot() {
@@ -102,21 +107,54 @@ function paintFoot() {
 async function send() {
   const c = current;
   if (c.sending || !Object.keys(c.stars).length) return;
+  const comment = (dlg.querySelector(".rate-comment textarea")?.value || "").trim().slice(0, 500);
+  const phoneIn = dlg.querySelector(".rate-phone input");
+  // Indian mobile numbers: 10 digits starting 6–9; "+91" or a leading 0 typed in are dropped
+  const phone = (phoneIn?.value || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+    c.error = "Please enter a 10-digit mobile number, or leave it empty.";
+    paintFoot(); phoneIn.setAttribute("aria-invalid", "true"); phoneIn.focus();
+    return;
+  }
+  c.review = comment;
   c.sending = true; c.error = ""; paintFoot();
-  const comment = (dlg.querySelector(".rate-comment textarea")?.value || "").trim().slice(0, 300);
   try {
     await setDoc(doc(db, "restaurants", C.restaurantId, "ratings", c.id),
-      { order: c.id, items: c.stars, comment, createdAt: serverTimestamp(), counted: false });
+      { order: c.id, items: c.stars, comment, phone, createdAt: serverTimestamp(), counted: false });
     markRated(c.id);
   } catch (err) {
     console.warn("[ratings] Couldn't send:", err);
     if (err.code === "permission-denied") markRated(c.id);   // already rated (or not served): don't ask again
     else { c.sending = false; c.error = "Couldn’t send your rating. Check the internet connection and try again."; paintFoot(); return; }
   }
-  dlg.querySelector(".rate-body").innerHTML = '<div class="rate-done"><div class="rate-done-mark" aria-hidden="true">★</div><p><b>Thank you!</b></p><p class="rate-note">We’re glad you came to Café 52.</p></div>';
+  // Offer Google to everyone who rates, whatever their stars (Google doesn't allow asking only happy guests)
+  dlg.querySelector(".rate-body").innerHTML = '<div class="rate-done"><div class="rate-done-mark" aria-hidden="true">★</div><p><b>Thank you!</b></p><p class="rate-note">We’re glad you came to Café 52.</p></div>'
+    + '<div class="rate-google"><p><b>Share it on Google?</b> Your review helps other people find Café 52. It takes a few seconds with your Google account.</p>'
+    + (c.review ? '<p class="rate-note">We’ll copy your review, so you can just paste it on Google.</p>' : "")
+    + '<button type="button" class="rate-google-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.5-2.7c-1 .7-2.3 1.1-3.8 1.1-2.9 0-5.4-2-6.3-4.6H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.7 14.1a6.6 6.6 0 0 1 0-4.2V7.1H2.1a11 11 0 0 0 0 9.8l3.6-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 0 0 2.1 7.1l3.6 2.8C6.6 7.4 9.1 5.4 12 5.4z"/></svg>Post on Google</button>'
+    + '<p class="rate-copied" role="status" hidden></p></div>';
   dlg.querySelector(".rate-foot").innerHTML = '<button type="button" class="rate-send rate-close">Back to the menu</button>';
   paintPrompt();
   window.MenuCart?.refresh?.();
+}
+
+// Google review page: MENU_CONFIG.googleReviewUrl (the "Ask for reviews" link from Google Business Profile) opens the
+// review box directly; without it, Google Maps opens on Café 52, where guests tap "Write a review".
+function googleUrl() {
+  return C.googleReviewUrl || "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(C.googlePlaceQuery || C.restaurantName);
+}
+async function openGoogle() {
+  const note = dlg.querySelector(".rate-copied");
+  // Copy first: opening a tab uses up the tap, and browsers only allow copying during a tap
+  const copying = current?.review && navigator.clipboard ? navigator.clipboard.writeText(current.review) : null;
+  const win = window.open(googleUrl(), "_blank");
+  if (win) win.opener = null;
+  else location.href = googleUrl();   // pop-ups blocked: go there in this tab
+  if (current?.review) {
+    try { await copying; note.textContent = "Your review is copied. On Google, tap the text box and choose Paste."; }
+    catch (_) { note.textContent = "On Google, tap the stars and type your review."; }
+    note.hidden = false;
+  }
 }
 
 function onClick(e) {
@@ -131,6 +169,7 @@ function onClick(e) {
     paintFoot();
     return;
   }
+  if (e.target.closest(".rate-google-btn")) { openGoogle(); return; }
   if (e.target.closest(".rate-send") && !e.target.closest(".rate-close")) send();
 }
 

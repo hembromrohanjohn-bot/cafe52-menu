@@ -127,14 +127,17 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/restaurants/$(rid)/orders/$(orderId))
         && get(/databases/$(database)/documents/restaurants/$(rid)/orders/$(orderId)).data.status == 'served'
         && request.resource.data.keys().hasAll(['order', 'items', 'comment', 'createdAt', 'counted'])
-        && request.resource.data.keys().hasOnly(['order', 'items', 'comment', 'createdAt', 'counted'])
+        && request.resource.data.keys().hasOnly(['order', 'items', 'comment', 'phone', 'createdAt', 'counted'])
         && request.resource.data.order == orderId
         && request.resource.data.items is map
         && request.resource.data.items.size() >= 1
         && request.resource.data.items.size() <= 60
         && request.resource.data.items.values().hasOnly([1, 2, 3, 4, 5])
         && request.resource.data.comment is string
-        && request.resource.data.comment.size() <= 300
+        && request.resource.data.comment.size() <= 500
+        // optional Indian mobile number (10 digits, starting 6–9), only staff can read it
+        && (!('phone' in request.resource.data) || request.resource.data.phone == ''
+            || (request.resource.data.phone is string && request.resource.data.phone.matches('^[6-9][0-9]{9}$')))
         && request.resource.data.createdAt == request.time
         && request.resource.data.counted == false;
       allow get, list: if isStaff(rid);
