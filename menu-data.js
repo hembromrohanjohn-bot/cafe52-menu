@@ -229,5 +229,4 @@ const DESCRIPTIONS = {
 
 // Dish photos, by menu number: shown across the top of the dish, and full size when tapped. Files live in img/.
 const PHOTOS = {
-  84: "img/dish-84.jpg",   // Chicken Cheese Pizza
 };
