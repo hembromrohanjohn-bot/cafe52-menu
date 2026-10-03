@@ -136,6 +136,7 @@ section.sec { margin-top: 22px; background: var(--card); border-radius: 18px; ov
 .nm .t { font: 600 15.5px/1.35 var(--sans); color: var(--ink); }
 .nm .no { display: block; margin-top: 2px; font: 500 12px var(--sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .nm .tag { margin-left: 6px; vertical-align: 1px; }
+.nm .d { display: block; margin-top: 3px; font: italic 500 13.5px/1.4 var(--serif); color: #C9D1DA; }
 .nm .addon-hint { display: block; margin-top: 3px; font: 500 12px var(--sans); color: var(--gold); opacity: .85; }
 .item .price { font: 400 19px var(--display); letter-spacing: .04em; font-variant-numeric: tabular-nums; white-space: nowrap; color: #fff; text-align: right; }
 .item .price::before { content: "₹"; margin-right: 2px; color: #fff; }
@@ -267,7 +268,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
         <button role="tab" aria-selected="false" data-tab="drinks">Drinks</button>
       </div>
       <div class="row2">
-        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" aria-label="Search the menu" placeholder="Search dishes" autocomplete="off"></label>
+        <label class="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" aria-label="Search the menu" placeholder="Search dishes or ingredients" autocomplete="off"></label>
         <div class="diet" role="group" aria-label="Diet">
           <button type="button" data-diet="veg" aria-pressed="false" aria-label="Veg only"><span class="mark veg" aria-hidden="true"></span><span class="lbl">Veg</span></button>
           <button type="button" data-diet="nonveg" aria-pressed="false" aria-label="Non-veg only"><span class="mark nonveg" aria-hidden="true"></span><span class="lbl">Non-veg</span></button>
@@ -289,7 +290,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
   </footer>
 </div>
 
-<script src="menu-data.js?v=20261003b"></script>
+<script src="menu-data.js?v=20261003c"></script>
 <script>
 /* Dishes, prices, diet marks and add-ons live in menu-data.js (MENU and ADDONS). */
 
@@ -338,8 +339,10 @@ function starsHTML(no) {
   return `<span class="stars" aria-label="Rated ${avg.toFixed(1)} out of 5 by ${r.n} guests"><b aria-hidden="true">★ ${avg.toFixed(1)}</b><span aria-hidden="true">(${r.n})</span></span>`;
 }
 window.renderRatings = () => render();
+const descOf = no => (typeof DESCRIPTIONS !== "undefined" && DESCRIPTIONS[no]) || "";
 function itemHTML([no, name, price, d]) {
-  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}<span class="no">No. ${no}${starsHTML(no)}</span>${addonHint(no)}</div></div><div class="price">${price}</div></div>`;
+  const desc = descOf(no);
+  return `<div class="item"${cartAttrs(no)}><div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}${desc ? `<span class="d">${esc(desc)}</span>` : ""}<span class="no">No. ${no}${starsHTML(no)}</span>${addonHint(no)}</div></div><div class="price">${price}</div></div>`;
 }
 
 function emptyHTML(q) {
@@ -362,7 +365,7 @@ function render() {
   for (const [title, blurb, groups] of MENU[state.tab]) {
     let body = "", n = 0;
     for (const [glabel, gd, items] of groups) {
-      const hits = items.map(i => [i[0], i[1], i[2], i[3] || gd]).filter(i => dietOk(i[3]) && match(i[0], i[1], title, glabel || ""));
+      const hits = items.map(i => [i[0], i[1], i[2], i[3] || gd]).filter(i => dietOk(i[3]) && match(i[0], i[1], title, glabel || "", descOf(i[0])));
       if (!hits.length) continue;
       n += hits.length;
       if (glabel) body += `<h3 class="grp-h">${markHTML(gd)}${esc(glabel)}<span>${hits.length}</span></h3>`;
