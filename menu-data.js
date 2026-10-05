@@ -232,7 +232,7 @@ const PHOTOS = {
   37: "img/dish-37.jpg",     // Chicken Shawarma Plate With Salad
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
-  84: "img/dish-84.jpg",     // Chicken Cheese Pizza
+  84: "img/dish-84-2.jpg",   // Chicken Cheese Pizza (new photo; a new name so phones don't show the old cached one)
   95: "img/dish-95.jpg",     // Salted Fries
   97: "img/dish-97.jpg",     // Peri Peri Fries
   116: "img/dish-116.jpg",   // Chicken Cutlet
