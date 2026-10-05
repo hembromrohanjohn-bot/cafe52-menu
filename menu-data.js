@@ -229,6 +229,7 @@ const DESCRIPTIONS = {
 
 // Dish photos, by menu number: shown across the top of the dish, and full size when tapped. Files live in img/.
 const PHOTOS = {
+  37: "img/dish-37.jpg",     // Chicken Shawarma Plate With Salad
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
   95: "img/dish-95.jpg",     // Salted Fries
