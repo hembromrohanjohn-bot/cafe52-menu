@@ -233,6 +233,7 @@ const PHOTOS = {
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
   95: "img/dish-95.jpg",     // Salted Fries
+  97: "img/dish-97.jpg",     // Peri Peri Fries
   116: "img/dish-116.jpg",   // Chicken Cutlet
   121: "img/dish-121.jpg",   // Fresh Lime Soda
   136: "img/dish-136.jpg",   // Hot Coffee
