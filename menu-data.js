@@ -229,6 +229,7 @@ const DESCRIPTIONS = {
 
 // Dish photos, by menu number: shown across the top of the dish, and full size when tapped. Files live in img/.
 const PHOTOS = {
+  1: "img/dish-1.jpg",       // Chicken Shawarma Roll (₹120)
   37: "img/dish-37.jpg",     // Chicken Shawarma Plate With Salad
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   59: "img/dish-59.jpg",     // Chicken Cheese Grilled Sandwich
