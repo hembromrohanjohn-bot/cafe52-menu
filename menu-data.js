@@ -234,5 +234,6 @@ const PHOTOS = {
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
   95: "img/dish-95.jpg",     // Salted Fries
   116: "img/dish-116.jpg",   // Chicken Cutlet
+  121: "img/dish-121.jpg",   // Fresh Lime Soda
   136: "img/dish-136.jpg",   // Hot Coffee
 };
