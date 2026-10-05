@@ -231,6 +231,7 @@ const DESCRIPTIONS = {
 const PHOTOS = {
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
+  95: "img/dish-95.jpg",     // Salted Fries
   116: "img/dish-116.jpg",   // Chicken Cutlet
   136: "img/dish-136.jpg",   // Hot Coffee
 };
