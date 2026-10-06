@@ -234,6 +234,7 @@ const PHOTOS = {
   38: "img/dish-38.jpg",     // Falafel Chicken Plate
   41: "img/dish-41.jpg",     // Chicken Cheese Burger
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
+  56: "img/dish-56.jpg",     // Paneer Cheese Burger
   59: "img/dish-59.jpg",     // Chicken Cheese Grilled Sandwich
   60: "img/dish-60.jpg",     // Non Veg Club Sandwich
   63: "img/dish-63.jpg",     // Chicken Shawarma Sandwich
