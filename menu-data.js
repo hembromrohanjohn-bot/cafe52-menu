@@ -246,6 +246,7 @@ const PHOTOS = {
   104: "img/dish-104.jpg",   // Chicken Hakka Noodles
   106: "img/dish-106.jpg",   // Chicken 65
   116: "img/dish-116.jpg",   // Chicken Cutlet
+  119: "img/dish-119.jpg",   // Chicken Cheese Cutlet
   121: "img/dish-121.jpg",   // Fresh Lime Soda
   136: "img/dish-136.jpg",   // Hot Coffee
 };
