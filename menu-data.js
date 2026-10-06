@@ -19,13 +19,13 @@ food: [
       [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[22,"Paneer Cheese Roll",160],[23,"Mix Veg Roll",120],
       [24,"Mix Veg Roll With Cheese",140],[25,"Falafel Roll",140],[26,"Falafel Cheese Roll",160],[27,"Lebanese Masala Roll",120],
       [28,"Lebanese Masala Roll With Cheese",140],[29,"Veg Cutlet Roll",120],[30,"Veg Cutlet Roll With Cheese",140],
-      [31,"Hummus Garlic Roll",110],[32,"Hummus Garlic Roll With Cheese",130]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "salad", "fries", "pp-fries"]],
+      [31,"Hummus Garlic Roll",110],[32,"Hummus Garlic Roll With Cheese",130]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "salad", "fries", "pp-fries", "hummus"]],
   ["Plates", "Hummus, falafel & shawarma with pita", [
     ["Veg", "v", [
       [33,"Hummus Plate With 2 Pita Bread",200],[34,"Falafel Plate (4 + 2 Pita Bread) & Hummus",290],[35,"Hummus Falafel Plate",250]]],
     ["Chicken Shawarma", "n", [
       [36,"Chicken Shawarma Plate Without Salad",170],[37,"Chicken Shawarma Plate With Salad",200],
-      [38,"Falafel Chicken Plate",320],[39,"Shahan Shawarma Plate",320]]]], ["pita", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries"]],
+      [38,"Falafel Chicken Plate",320],[39,"Shahan Shawarma Plate",320]]]], ["pita", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
   ["Burgers", "Crispy, tikka & fries burgers", [
     ["Chicken", "n", [
       [40,"Chicken Burger",100],[41,"Chicken Cheese Burger",120],[42,"Chicken Burger With Egg & Cheese",150],
@@ -34,7 +34,7 @@ food: [
       [49,"Chicken Tikka Cheese Burger",170],[50,"Chicken Burger With Egg & Cheese",190]]],
     ["Veg", "v", [
       [51,"Veg Burger",90],[52,"Veg Cheese Burger",110],[53,"Veg Fries Burger",130],[54,"Veg Fries Cheese Burger",150],
-      [55,"Paneer Burger",140],[56,"Paneer Cheese Burger",160],[57,"Paneer Tikka Burger",160],[58,"Paneer Tikka Cheese Burger",180]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries"]],
+      [55,"Paneer Burger",140],[56,"Paneer Cheese Burger",160],[57,"Paneer Tikka Burger",160],[58,"Paneer Tikka Cheese Burger",180]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
   ["Sandwiches", "Grilled, club & Bombay toast", [
     ["Non-veg", "n", [
       [59,"Chicken Cheese Grilled Sandwich",110],[60,"Non Veg Club Sandwich",150],[61,"Chicken Tikka Sandwich",140],
@@ -43,7 +43,7 @@ food: [
     ["Veg", "v", [
       [68,"Veg Grilled Sandwich",90],[69,"Veg Club Sandwich",130],[70,"Mushroom Mania Sandwich",100],
       [71,"Corn Cheese Grilled Sandwich",110],[72,"Paneer Cheese Grilled Sandwich",130],[73,"Plain Cheese Sandwich",100],
-      [74,"Bombay Toast",80],[75,"Veg Russian Salad Sandwich",90],[76,"Veg Cutlet Sandwich",120],[77,"Grilled Cheese Sandwich",110]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "fries", "pp-fries"]],
+      [74,"Bombay Toast",80],[75,"Veg Russian Salad Sandwich",90],[76,"Veg Cutlet Sandwich",120],[77,"Grilled Cheese Sandwich",110]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "fries", "pp-fries", "hummus"]],
   ["Pizza", "Tandoori, tikka, shawarma & cheese", [
     ["Non-veg", "n", [
       [84,"Chicken Cheese Pizza",150],[85,"Chicken Shawarma Pizza",210],[86,"Tandoori Chicken Pizza",240],
@@ -71,7 +71,7 @@ snacks: [
       [99,"Schezwan Fries",130,"v"],[100,"Schezwan Cheese Fries",150,"v"],[101,"Crispy Chicken Cheese Fries",200,"n"]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy"]],
   ["Cutlets", "Chicken & veg, plain or with cheese", [
     [null, null, [
-      [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"],[118,"Veg Cheese Cutlet",130,"v"],[119,"Chicken Cheese Cutlet",160,"n"]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "pita"]],
+      [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"],[118,"Veg Cheese Cutlet",130,"v"],[119,"Chicken Cheese Cutlet",160,"n"]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "pita", "hummus"]],
 ],
 drinks: [
   ["Cold Drinks", "Fresh lime, sodas & water", [
@@ -100,6 +100,7 @@ const ADDONS = {
   "cheese":   ["Extra Cheese", 20],
   "salad":    ["Extra Salad", 20],
   "pita":     ["Extra Pita Bread", 20],
+  "hummus":   ["Extra Hummus", 20],
   "fries":    ["Extra Fries", 60],
   "pp-fries": ["Extra Peri Peri Fries", 80],
 };
