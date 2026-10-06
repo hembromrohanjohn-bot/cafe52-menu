@@ -234,6 +234,7 @@ const PHOTOS = {
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   59: "img/dish-59.jpg",     // Chicken Cheese Grilled Sandwich
   60: "img/dish-60.jpg",     // Non Veg Club Sandwich
+  63: "img/dish-63.jpg",     // Chicken Shawarma Sandwich
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
   84: "img/dish-84-2.jpg",   // Chicken Cheese Pizza (new photo; a new name so phones don't show the old cached one)
   95: "img/dish-95.jpg",     // Salted Fries
