@@ -19,7 +19,7 @@ window.MENU_CONFIG = {
   // Pay by UPI after ordering: the guest's order screen shows "Pay ₹X with UPI", which opens GPay / PhonePe / Paytm
   // with this UPI ID and the order total filled in. Staff check the payment arrived and tap "Paid" on the staff screen.
   // Leave id empty to hide the Pay button. A business/merchant UPI ID works most reliably.
-  upi: { id: "", name: "Café 52" },
+  upi: { id: "9955577333@ybl", name: "Café 52" },
 
   // "Post on Google" after a guest rates their food. Best: the "Ask for reviews" link from Google Business Profile
   // (looks like https://g.page/r/XXXX/review), which opens the review box directly. Until it's set, Google Maps opens
