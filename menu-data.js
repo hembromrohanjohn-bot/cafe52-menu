@@ -232,6 +232,7 @@ const PHOTOS = {
   1: "img/dish-1.jpg",       // Chicken Shawarma Roll (₹120)
   37: "img/dish-37.jpg",     // Chicken Shawarma Plate With Salad
   38: "img/dish-38.jpg",     // Falafel Chicken Plate
+  41: "img/dish-41.jpg",     // Chicken Cheese Burger
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
   59: "img/dish-59.jpg",     // Chicken Cheese Grilled Sandwich
   60: "img/dish-60.jpg",     // Non Veg Club Sandwich
