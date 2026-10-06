@@ -211,10 +211,26 @@ async function setStatus(id, status) {
   render();
 }
 
+// Paid / not paid (the guest paid by UPI or at the counter). Staff tap it once they've checked the money arrived.
+async function setPaid(id, paid) {
+  if (busy.has(id)) return;
+  busy.add(id);
+  render();
+  try {
+    await updateDoc(doc(db, "restaurants", C.restaurantId, "orders", id), { paid, paidAt: serverTimestamp(), paidBy: auth.currentUser.email });
+  } catch (err) {
+    console.error("[staff] Couldn't mark the order paid:", err);
+    alertBar(err.code === "permission-denied" ? "Couldn't mark it paid: the Firebase rules need updating." : "Couldn't update the order. Check the internet connection and try again.");
+  }
+  busy.delete(id);
+  render();
+}
+
 $("#board").addEventListener("click", e => {
   const b = e.target.closest("button[data-act]");
   if (!b) return;
   const id = b.dataset.id;
+  if (b.dataset.act === "paid") setPaid(id, b.getAttribute("aria-pressed") !== "true");
   if (b.dataset.act === "next") { confirmCancel = null; setStatus(id, b.dataset.next); }
   if (b.dataset.act === "cancel") {
     if (confirmCancel === id) { confirmCancel = null; setStatus(id, "cancelled"); }
@@ -246,7 +262,9 @@ function cardHTML(o) {
     + `<span class="time${waiting ? " late" : ""}" title="${esc(new Date(placed).toLocaleString())}">${clock(new Date(placed))} · ${ago(placed)}</span></div></header>`
     + `<ul class="items">${(o.items || []).map(i => `<li><span class="qty">${esc(i.qty)}×</span><span>${esc(i.name)}${i.variant ? `<em>${esc(i.variant)}</em>` : ""}${i.extras?.length ? `<strong class="extras">+ ${esc(i.extras.map(e => e.name).join(", "))}</strong>` : ""}</span></li>`).join("")}</ul>`
     + (o.notes ? `<p class="notes"><b>Note</b>${esc(o.notes)}</p>` : "")
-    + `<footer><span class="total">${money(o.total)}</span><span class="state">${esc(f.label)}</span></footer>`
+    + `<footer><span class="total">${money(o.total)}</span>`
+    + (o.status === "cancelled" ? "" : `<button class="paid" data-act="paid" data-id="${esc(o.id)}" aria-pressed="${o.paid === true}"${busy.has(o.id) ? " disabled" : ""}>${o.paid ? "✓ Paid" : "Not paid"}</button>`)
+    + `<span class="state">${esc(f.label)}</span></footer>`
     + (actions ? `<div class="actions">${actions}</div>` : "")
     + "</article>";
 }

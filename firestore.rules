@@ -67,12 +67,16 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isStaff(rid);
 
-      // Staff: move an order along (or cancel it). Nothing else about the order can be changed.
-      allow update: if isStaff(rid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusAt', 'statusBy'])
-        && request.resource.data.status in ['new', 'accepted', 'preparing', 'served', 'cancelled']
-        && request.resource.data.statusAt == request.time
-        && request.resource.data.statusBy == request.auth.token.email;
+      // Staff: move an order along (or cancel it), or mark it paid / not paid. Nothing else about the order can be changed.
+      allow update: if isStaff(rid) && (
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusAt', 'statusBy'])
+          && request.resource.data.status in ['new', 'accepted', 'preparing', 'served', 'cancelled']
+          && request.resource.data.statusAt == request.time
+          && request.resource.data.statusBy == request.auth.token.email)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paid', 'paidAt', 'paidBy'])
+          && request.resource.data.paid is bool
+          && request.resource.data.paidAt == request.time
+          && request.resource.data.paidBy == request.auth.token.email));
 
       allow delete: if false;
     }

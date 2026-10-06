@@ -96,6 +96,8 @@ body.has-new .top { background: var(--st-new); }
 .notes { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: #FDF0C4; color: #4A3A10; font-size: 15px; }
 .notes b { font: 600 13px var(--st-font-strong); letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; }
 .order footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--st-line); }
+.order footer .paid { margin-left: auto; margin-right: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer; font: 600 13px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; border: 1.5px dashed #B8732E; background: none; color: #8A4B12; }
+.order footer .paid[aria-pressed="true"] { border: 1.5px solid #3E7A2C; background: #E6F2DF; color: #2F5E20; }
 .total { font: 600 20px var(--st-font-strong); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 .state { padding: 4px 12px; border-radius: 999px; font: 600 13px var(--st-font-strong); letter-spacing: .14em; text-transform: uppercase; background: var(--st-bg); color: var(--st-muted); }
 .order[data-status="new"] .state { background: #F9E1DA; color: var(--st-new); }

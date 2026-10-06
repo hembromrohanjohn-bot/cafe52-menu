@@ -164,6 +164,14 @@ html.cart-has-bar body { padding-bottom: calc(84px + env(safe-area-inset-bottom,
 .cart-track-cancel { margin: 14px 0 0; text-align: center; font-weight: 700; font-size: 17px; color: #8A1C0C; }
 .cart-track-link { display: block; margin: 10px 0 0; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 14px; color: var(--cart-ink, #222); text-decoration: underline; text-underline-offset: 3px; text-align: left; }
 .cart-bar-status { font-variant-numeric: normal; }
+/* Pay by UPI under an order */
+.cart-pay { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--cart-line, #ddd); text-align: center; }
+.cart-pay-btn { display: flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box; }
+.cart-pay-note { margin: 8px 0 0; font-size: 13px; color: var(--cart-muted, #666); }
+.cart-pay-id { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 0; font-size: 13.5px; color: var(--cart-muted, #666); }
+.cart-pay-id b { color: var(--cart-ink, #222); font-weight: 600; user-select: all; }
+.cart-pay-id button { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--cart-line, #ccc); background: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--cart-ink, #222); }
+.cart-paid { margin: 14px 0 0; padding: 10px; border-radius: 10px; text-align: center; font-weight: 700; color: #1E7A35; background: rgba(46, 158, 68, .12); }
 
 /* Today's code (asked with the table number when needed) and the pause switch */
 .cart-ask-field + .cart-ask-field:not([hidden]) { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--cart-line, #ddd); }

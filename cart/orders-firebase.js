@@ -54,10 +54,10 @@ export function watchOrdering(config, callback) {
     err => console.warn("[cart] Couldn't follow ordering status:", err));
 }
 
-// Calls back with { status, statusAt } every time staff update the order; returns a function that stops watching
+// Calls back with { status, statusAt, paid } every time staff update the order; returns a function that stops watching
 export function watchOrder(config, id, callback) {
   return onSnapshot(doc(ordersOf(config), id), snap => {
-    if (snap.exists()) callback({ status: snap.get("status"), statusAt: snap.get("statusAt")?.toMillis?.() || null });
+    if (snap.exists()) callback({ status: snap.get("status"), statusAt: snap.get("statusAt")?.toMillis?.() || null, paid: snap.get("paid") === true });
   }, err => console.warn("[cart] Couldn't follow order status:", err));
 }
 

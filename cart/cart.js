@@ -26,6 +26,10 @@
  * with a wrong or expired code, so a photo of a table's QR code can't be used to order from home.
  * Staff can also pause ordering; the menu then stays browsable but can't take orders.
  *
+ * Pay by UPI (MENU_CONFIG.upi = { id, name }): after an order is placed, its tracker shows "Pay ₹X with UPI", a upi:// link
+ * that opens the guest's UPI app with the amount filled in, plus the UPI ID to copy. Nothing confirms the payment
+ * automatically: staff check it arrived and mark the order Paid on the staff screen, which the guest then sees.
+ *
  * Menus that re-render their items (tabs, search, filters) are fine: a MutationObserver re-adds the
  * controls every time the item list changes. With orderingEnabled anything but true, this file does nothing.
  */
@@ -91,7 +95,7 @@
   const SHOW_FINAL_MS = 15 * 60e3;     // keep showing a served or cancelled order for 15 minutes
 
   const trackKey = () => "orders:" + (C.restaurantId || location.pathname) + (table ? ":" + table : "");
-  let tracked = [];                    // { id, code, table, at, status, statusAt }, newest first
+  let tracked = [];                    // { id, code, table, at, status, statusAt, total, paid }, newest first
   const watching = new Map();          // order id -> function that stops watching
 
   function loadTracked() {
@@ -296,9 +300,16 @@
       if (watching.has(o.id)) return;
       watching.set(o.id, () => {});
       firebase().then(fb => {
-        const stop = fb.watchOrder(C, o.id, ({ status, statusAt }) => {
+        const stop = fb.watchOrder(C, o.id, ({ status, statusAt, paid }) => {
           const entry = tracked.find(t => t.id === o.id);
-          if (!entry || !STATUS[status] || entry.status === status) return;
+          if (!entry || !STATUS[status]) return;
+          if (!!entry.paid !== !!paid) {
+            entry.paid = !!paid;
+            saveTracked();
+            if (paid) live.textContent = `Order ${entry.code}: payment received. Thank you!`;
+            refresh();
+          }
+          if (entry.status === status) return;
           entry.status = status;
           entry.statusAt = statusAt || Date.now();
           saveTracked();
@@ -619,6 +630,19 @@
     }
   }
 
+  // "Pay ₹X with UPI" under an order, until staff mark it paid
+  const upiId = C.upi && String(C.upi.id || "").trim();
+  function payHTML(o) {
+    if (o.paid) return '<p class="cart-paid">✓ Paid. Thank you!</p>';
+    if (!upiId || !(o.total > 0) || o.status === "cancelled") return "";
+    const note = `${C.restaurantName || "Order"} #${o.code}${o.table ? " Table " + o.table : ""}`;
+    const link = "upi://pay?" + [["pa", upiId], ["pn", C.upi.name || C.restaurantName || ""], ["am", Number(o.total).toFixed(2)], ["cu", "INR"], ["tn", note]]
+      .map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
+    return `<div class="cart-pay"><a class="cart-primary cart-pay-btn" href="${esc(link)}">Pay ${money(o.total)} with UPI</a>`
+      + `<p class="cart-pay-note">Opens GPay, PhonePe, Paytm or any UPI app. Or pay at the counter.</p>`
+      + `<p class="cart-pay-id"><span>UPI ID <b>${esc(upiId)}</b></span><button type="button" data-cart-act="upi-copy">Copy</button></p></div>`;
+  }
+
   function trackerHTML(o) {
     const step = STEPS.indexOf(o.status);
     let html = `<div class="cart-track" data-status="${esc(o.status)}"><div class="cart-track-head"><span class="cart-code">Order #${esc(o.code)}</span>`
@@ -628,7 +652,7 @@
       `<li class="${i < step ? "done" : i === step ? "now" : ""}"${i === step ? ' aria-current="step"' : ""}><span class="cart-dot" aria-hidden="true"></span>${esc(STATUS[s].label)}</li>`).join("") + "</ol>";
     let extra = "";
     if (typeof C.trackerExtra === "function") { try { extra = C.trackerExtra(o) || ""; } catch (_) {} }
-    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${extra}</div>`;
+    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${payHTML(o)}${extra}</div>`;
   }
 
   function lineHTML(l) {
@@ -795,7 +819,7 @@
       const { id } = await submitOrder(order);
       sentId = id;
       if (id) {
-        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now() });
+        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now(), total: order.total });
         tracked = tracked.slice(0, 10);
         saveTracked();
         watchTracked();
@@ -850,6 +874,12 @@
     const act = b.dataset.cartAct, key = b.dataset.key;
     const itemEl = b.closest("[data-cart-id]");
 
+    if (act === "upi-copy") {
+      const done = ok => { b.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { b.textContent = "Copy"; }, 2000); };
+      if (navigator.clipboard) navigator.clipboard.writeText(upiId).then(() => done(true), () => done(false));
+      else done(false);
+      return;
+    }
     if (act === "add" && itemEl) {
       const it = readItem(itemEl);
       setQty(it.id, qtyOf(it.id) + 1, { id: it.id, name: it.name, price: it.price });
