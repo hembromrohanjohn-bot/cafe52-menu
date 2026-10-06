@@ -237,6 +237,7 @@ const PHOTOS = {
   84: "img/dish-84-2.jpg",   // Chicken Cheese Pizza (new photo; a new name so phones don't show the old cached one)
   95: "img/dish-95.jpg",     // Salted Fries
   97: "img/dish-97.jpg",     // Peri Peri Fries
+  103: "img/dish-103.jpg",   // Chicken Schezwan Fried Rice
   106: "img/dish-106.jpg",   // Chicken 65
   116: "img/dish-116.jpg",   // Chicken Cutlet
   121: "img/dish-121.jpg",   // Fresh Lime Soda
