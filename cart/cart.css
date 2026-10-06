@@ -166,7 +166,10 @@ html.cart-has-bar body { padding-bottom: calc(84px + env(safe-area-inset-bottom,
 .cart-bar-status { font-variant-numeric: normal; }
 /* Pay by UPI under an order */
 .cart-pay { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--cart-line, #ddd); text-align: center; }
-.cart-pay-btn { display: flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box; }
+.cart-pay-title { margin: 0 0 10px; font-family: var(--cart-font-strong, inherit); font-size: 18px; letter-spacing: .06em; text-transform: uppercase; color: var(--cart-ink, #222); }
+.cart-pay-apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cart-pay-app { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 6px; border-radius: 12px; text-decoration: none; text-align: center; font-weight: 700; font-size: 14px; line-height: 1.15; background: var(--cart-accent, #222); color: var(--cart-accent-ink, #fff); }
+.cart-pay-other { display: inline-block; margin-top: 10px; padding: 6px 4px; font-size: 13.5px; color: var(--cart-ink, #222); text-decoration: underline; text-underline-offset: 3px; }
 .cart-pay-note { margin: 8px 0 0; font-size: 13px; color: var(--cart-muted, #666); }
 .cart-pay-id { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 0; font-size: 13.5px; color: var(--cart-muted, #666); }
 .cart-pay-id b { color: var(--cart-ink, #222); font-weight: 600; user-select: all; }

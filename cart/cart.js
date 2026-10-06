@@ -636,11 +636,22 @@
     if (o.paid) return '<p class="cart-paid">✓ Paid. Thank you!</p>';
     if (!upiId || !(o.total > 0) || o.status === "cancelled") return "";
     const note = `${C.restaurantName || "Order"} #${o.code}${o.table ? " Table " + o.table : ""}`;
-    const link = "upi://pay?" + [["pa", upiId], ["pn", C.upi.name || C.restaurantName || ""], ["am", Number(o.total).toFixed(2)], ["cu", "INR"], ["tn", note]]
+    const q = [["pa", upiId], ["pn", C.upi.name || C.restaurantName || ""], ["am", Number(o.total).toFixed(2)], ["cu", "INR"], ["tn", note]]
       .map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
-    return `<div class="cart-pay"><a class="cart-primary cart-pay-btn" href="${esc(link)}">Pay ${money(o.total)} with UPI</a>`
-      + `<p class="cart-pay-note">Opens GPay, PhonePe, Paytm or any UPI app. Or pay at the counter.</p>`
-      + `<p class="cart-pay-id"><span>UPI ID <b>${esc(upiId)}</b></span><button type="button" data-cart-act="upi-copy">Copy</button></p></div>`;
+    // One button per app, so the phone can't hand the payment to another app (e.g. WhatsApp) instead.
+    // Android: an intent link naming the app's package (opens the Play Store if it isn't installed). iPhone: each app's own link.
+    const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const apps = [
+      ["Google Pay", "com.google.android.apps.nbu.paisa.user", "gpay://upi/pay?"],
+      ["PhonePe", "com.phonepe.app", "phonepe://pay?"],
+      ["Paytm", "net.one97.paytm", "paytmmp://pay?"]
+    ];
+    const href = ([, pkg, iosLink]) => ios ? iosLink + q : `intent://pay?${q}#Intent;scheme=upi;package=${pkg};end`;
+    return `<div class="cart-pay"><p class="cart-pay-title">Pay ${money(o.total)} by UPI</p>`
+      + `<div class="cart-pay-apps">${apps.map(a => `<a class="cart-pay-app" href="${esc(href(a))}">${esc(a[0])}</a>`).join("")}</div>`
+      + `<a class="cart-pay-other" href="${esc("upi://pay?" + q)}">Another UPI app</a>`
+      + `<p class="cart-pay-id"><span>UPI ID <b>${esc(upiId)}</b></span><button type="button" data-cart-act="upi-copy">Copy</button></p>`
+      + `<p class="cart-pay-note">Or pay at the counter.</p></div>`;
   }
 
   function trackerHTML(o) {
