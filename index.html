@@ -317,7 +317,7 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
   </footer>
 </div>
 
-<script src="menu-data.js?v=20261007c"></script>
+<script src="menu-data.js?v=20261007d"></script>
 <script>
 /* Dishes, prices, diet marks and add-ons live in menu-data.js (MENU and ADDONS). */
 
@@ -349,11 +349,16 @@ const cartAttrs = no => ` data-cart-id="item-${no}" data-cart-name="${esc(label(
 // Add-ons a dish takes, for the cart's "Customise" (config.js getExtras): [{ id: "addon-cheese", name, price }]. None for drinks.
 function addonsFor(id) {
   const it = ITEM[String(id).replace("item-", "")];
-  return it ? it.addons.filter(a => ADDONS[a]).map(a => ({ id: "addon-" + a, name: ADDONS[a][0], price: ADDONS[a][1] })) : [];
+  return it ? it.addons.filter(a => ADDONS[a] && !(a === "egg" && !isNonVeg(it.diet))).map(a => ({ id: "addon-" + a, name: ADDONS[a][0], price: ADDONS[a][1] })) : [];
 }
 function addonHint(no) {
   const list = addonsFor(no);
-  return list.length ? `<span class="addon-hint">Add-ons from ₹${Math.min(...list.map(a => a.price))}</span>` : "";
+  if (!list.length) return "";
+  // Name the add-ons that turn the dish into a former menu variant (cheese, egg, peri peri…), so guests can find them
+  const KEY = { cheese: "cheese", egg: "egg", "fries-in": "fries inside", peri: "peri peri", "schez-f": "schezwan", schezwan: "schezwan", paneer: "paneer" };
+  const named = [...new Set(list.map(a => KEY[a.id.replace("addon-", "")]).filter(Boolean))];
+  const text = named.length ? `Add ${named.length > 1 ? named.slice(0, -1).join(", ") + " or " + named.at(-1) : named[0]}` : `Add-ons from ₹${Math.min(...list.map(a => a.price))}`;
+  return `<span class="addon-hint">${esc(text)}</span>`;
 }
 // Lets the cart re-check a saved order against today's menu (config.js getItem)
 function cartItem(id) { const it = ITEM[String(id).replace("item-", "")]; return it ? { name: label(it.no), price: it.price } : null; }

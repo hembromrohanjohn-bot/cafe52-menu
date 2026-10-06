@@ -8,33 +8,23 @@ const MENU = {
 food: [
   ["Rolls", "Shawarma, fila, angara, tikka & shish taouk wraps", [
     ["Chicken", "n", [
-      [1,"Chicken Shawarma Roll",120],[2,"Chicken Cheese Shawarma Roll",140],[3,"Chicken Shawarma With Hummus",130],
-      [4,"Chicken Shawarma Falafel Roll With Hummus",150],[5,"Chicken Shawarma Roll",160],[6,"Chicken Shawarma Without Salad Roll",170],
-      [7,"Fila Chicken Roll",140],[8,"Fila Chicken Roll Without Salad",160],[9,"Fila Chicken Cheese Roll",160],
-      [10,"Fila Chicken Roll With Egg & Cheese",180],[11,"Angara Roll",130],[12,"Angara Cheese Roll",150],
-      [13,"Angara Roll With Egg & Cheese",170],[14,"Chicken Tikka Roll",130],[15,"Chicken Tikka Cheese Roll",150],
-      [16,"Chicken Tikka Roll With Egg & Cheese",170],[17,"Shish Taouk Roll",130],[18,"Cheese Shish Taouk Roll",150],
-      [19,"Shish Taouk Roll With Egg & Cheese",170]]],
+      [1,"Chicken Shawarma Roll",120],[3,"Chicken Shawarma With Hummus",130],[4,"Chicken Shawarma Falafel Roll With Hummus",150],
+      [5,"Chicken Shawarma Roll",160],[6,"Chicken Shawarma Without Salad Roll",170],[7,"Fila Chicken Roll",140],
+      [8,"Fila Chicken Roll Without Salad",160],[11,"Angara Roll",130],[14,"Chicken Tikka Roll",130],[17,"Shish Taouk Roll",130]]],
     ["Veg", "v", [
-      [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[22,"Paneer Cheese Roll",160],[23,"Mix Veg Roll",120],
-      [24,"Mix Veg Roll With Cheese",140],[25,"Falafel Roll",140],[26,"Falafel Cheese Roll",160],[27,"Lebanese Masala Roll",120],
-      [28,"Lebanese Masala Roll With Cheese",140],[29,"Veg Cutlet Roll",120],[30,"Veg Cutlet Roll With Cheese",140],
-      [31,"Hummus Garlic Roll",110],[32,"Hummus Garlic Roll With Cheese",130]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "salad", "fries", "pp-fries", "hummus"]],
+      [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[23,"Mix Veg Roll",120],[25,"Falafel Roll",140],
+      [27,"Lebanese Masala Roll",120],[29,"Veg Cutlet Roll",120],[31,"Hummus Garlic Roll",110]]]], ["cheese", "egg", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
   ["Plates", "Hummus, falafel & shawarma with pita", [
     ["Veg", "v", [
       [33,"Hummus Plate With 2 Pita Bread",200],[34,"Falafel Plate (4 + 2 Pita Bread) & Hummus",290],[35,"Hummus Falafel Plate",250]]],
     ["Chicken Shawarma", "n", [
       [36,"Chicken Shawarma Plate Without Salad",170],[37,"Chicken Shawarma Plate With Salad",200],
       [38,"Falafel Chicken Plate",320],[39,"Shahan Shawarma Plate",320]]]], ["pita", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
-  ["Burgers", "Crispy, tikka & fries burgers", [
+  ["Burgers", "Chicken, crispy, tikka, veg & paneer burgers", [
     ["Chicken", "n", [
-      [40,"Chicken Burger",100],[41,"Chicken Cheese Burger",120],[42,"Chicken Burger With Egg & Cheese",150],
-      [43,"Chicken Fries Burger",150],[44,"Chicken Fries Cheese Burger",170],[45,"Chicken Crispy Burger",150],
-      [46,"Chicken Crispy Cheese Burger",170],[47,"Chicken Crispy Burger With Egg & Cheese",190],[48,"Chicken Tikka Burger",150],
-      [49,"Chicken Tikka Cheese Burger",170],[50,"Chicken Burger With Egg & Cheese",190]]],
+      [40,"Chicken Burger",100],[45,"Chicken Crispy Burger",150],[48,"Chicken Tikka Burger",150]]],
     ["Veg", "v", [
-      [51,"Veg Burger",90],[52,"Veg Cheese Burger",110],[53,"Veg Fries Burger",130],[54,"Veg Fries Cheese Burger",150],
-      [55,"Paneer Burger",140],[56,"Paneer Cheese Burger",160],[57,"Paneer Tikka Burger",160],[58,"Paneer Tikka Cheese Burger",180]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
+      [51,"Veg Burger",90],[55,"Paneer Burger",140],[57,"Paneer Tikka Burger",160]]]], ["cheese", "egg", "fries-in", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "salad", "fries", "pp-fries", "hummus"]],
   ["Sandwiches", "Grilled, club & Bombay toast", [
     ["Non-veg", "n", [
       [59,"Chicken Cheese Grilled Sandwich",110],[60,"Non Veg Club Sandwich",150],[61,"Chicken Tikka Sandwich",140],
@@ -53,25 +43,22 @@ food: [
       [93,"Veg Special Pizza",160],[94,"Mushroom Cheese Pizza",170]]]], ["cheese", "garlic-s", "garlic", "spicy"]],
   ["Chinese", "Fried rice, hakka noodles & dry starters", [
     ["Non-veg", "n", [
-      [102,"Chicken Fried Rice",130],[103,"Chicken Schezwan Fried Rice",150],[104,"Chicken Hakka Noodles",130],
-      [105,"Chicken Schezwan Hakka Noodles",150],[106,"Chicken 65",250],[107,"Chicken Chilly Dry",250]]],
+      [102,"Chicken Fried Rice",130,"n",["schezwan", "spicy"]],[104,"Chicken Hakka Noodles",130,"n",["schezwan", "spicy"]],
+      [106,"Chicken 65",250],[107,"Chicken Chilly Dry",250]]],
     ["Veg", "v", [
-      [108,"Veg Fried Rice",120],[109,"Veg Schezwan Rice",140],[110,"Veg Paneer Rice",170],[111,"Veg Paneer Schezwan Rice",190],
-      [112,"Veg Hakka Noodles",120],[113,"Veg Schezwan Hakka Noodles",140],[114,"Veg Paneer Hakka Noodles",170],
-      [115,"Veg Paneer Schezwan Hakka Noodles",190]]]], ["spicy"]],
+      [108,"Veg Fried Rice",120,"v",["schezwan", "paneer", "spicy"]],[112,"Veg Hakka Noodles",120,"v",["schezwan", "paneer", "spicy"]]]]], ["spicy"]],
 ],
 snacks: [
   ["All Day Breakfast", "Eggs, kheema & toast, any time", [
     [null, null, [
       [78,"Egg Bhurji",140,"e"],[79,"Egg Masala Omelette",120,"e"],[80,"Chicken Kheema",180,"n"],
       [81,"French Toast",100,"e"],[82,"Toast Butter Jam",80,"v"],[83,"Toast Butter",60,"v"]]]], ["cheese"]],
-  ["French Fries", "Salted, peri peri & schezwan", [
+  ["French Fries", "Salted, peri peri or schezwan, with or without cheese", [
     [null, null, [
-      [95,"Salted Fries",100,"v"],[96,"Salted Cheese Fries",120,"v"],[97,"Peri Peri Fries",130,"v"],[98,"Peri Peri Cheese Fries",150,"v"],
-      [99,"Schezwan Fries",130,"v"],[100,"Schezwan Cheese Fries",150,"v"],[101,"Crispy Chicken Cheese Fries",200,"n"]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy"]],
+      [95,"French Fries",100,"v",["peri", "schez-f", "cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy"]],[101,"Crispy Chicken Cheese Fries",200,"n"]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy"]],
   ["Cutlets", "Chicken & veg, plain or with cheese", [
     [null, null, [
-      [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"],[118,"Veg Cheese Cutlet",130,"v"],[119,"Chicken Cheese Cutlet",160,"n"]]]], ["garlic-s", "garlic", "mayo-s", "mayo", "spicy", "cheese", "pita", "hummus"]],
+      [116,"Chicken Cutlet",140,"n"],[117,"Veg Cutlet",110,"v"]]]], ["cheese", "garlic-s", "garlic", "mayo-s", "mayo", "spicy", "pita", "hummus"]],
 ],
 drinks: [
   ["Cold Drinks", "Fresh lime, sodas & water", [
@@ -98,47 +85,38 @@ const ADDONS = {
   "mayo":     ["Extra Mayonnaise", 50],
   "spicy":    ["Extra Spicy Sauce", 20],
   "cheese":   ["Extra Cheese", 20],
+  "egg":      ["Extra Egg", 20],                 // not offered on veg dishes
   "salad":    ["Extra Salad", 20],
   "pita":     ["Extra Pita Bread", 20],
   "hummus":   ["Extra Hummus", 20],
   "fries":    ["Extra Fries", 60],
   "pp-fries": ["Extra Peri Peri Fries", 80],
+  "fries-in": ["Fries Inside the Burger", 50],
+  "peri":     ["Peri Peri Flavour", 30],
+  "schez-f":  ["Schezwan Flavour", 30],
+  "schezwan": ["Schezwan Style", 20],
+  "paneer":   ["Add Paneer", 50],
 };
 
 // A short description under each dish, by menu number. Drinks have none yet.
 const DESCRIPTIONS = {
   1: "Chicken shawarma, garlic sauce, pickles in pita.",
-  2: "Classic shawarma with melted cheese.",
   3: "Shawarma chicken with creamy hummus.",
   4: "Shawarma chicken, falafel and hummus.",
   5: "Our shawarma roll, bigger and loaded.",
   6: "Shawarma chicken and garlic sauce, no veggies.",
   7: "Spiced chicken in a crisp, flaky wrap.",
   8: "Extra fila chicken and sauce, no greens.",
-  9: "Fila chicken with melted cheese.",
-  10: "Fila chicken with egg and cheese.",
   11: "Fiery angara chicken with mint chutney.",
-  12: "Spicy angara chicken with cheese.",
-  13: "Angara chicken with egg and cheese.",
   14: "Chicken tikka with onions and mint mayo.",
-  15: "Chicken tikka with melted cheese.",
-  16: "Chicken tikka with egg and cheese.",
   17: "Garlic-lemon chicken with toum and pickles.",
-  18: "Shish taouk chicken with cheese.",
-  19: "Shish taouk with egg and cheese.",
   20: "Spiced paneer, onions and salad.",
   21: "Extra paneer and sauce, no greens.",
-  22: "Spiced paneer with melted cheese.",
   23: "Sautéed mixed veggies and sauces.",
-  24: "Mixed veggies with melted cheese.",
   25: "Falafel, tahini and pickles in pita.",
-  26: "Crunchy falafel with melted cheese.",
   27: "Spiced veggies, Lebanese-masala style.",
-  28: "Lebanese masala with melted cheese.",
   29: "Crispy veg cutlet with chutneys.",
-  30: "Veg cutlet with melted cheese.",
   31: "Hummus and garlic sauce, light and simple.",
-  32: "Hummus garlic with melted cheese.",
   33: "Hummus with olive oil and 2 pitas.",
   34: "4 falafels, hummus and 2 pitas.",
   35: "Hummus topped with falafel.",
@@ -147,24 +125,11 @@ const DESCRIPTIONS = {
   38: "Shawarma, falafel, hummus and pita.",
   39: "Our biggest platter, all the sides.",
   40: "Chicken patty, lettuce and mayo.",
-  41: "Chicken burger with cheese.",
-  42: "Chicken patty, fried egg and cheese.",
-  43: "Chicken patty with fries inside.",
-  44: "Chicken, fries and cheese.",
   45: "Fried chicken fillet, mayo and lettuce.",
-  46: "Crispy chicken with cheese.",
-  47: "Crispy chicken, egg and cheese.",
   48: "Chicken tikka, mint mayo and onions.",
-  49: "Chicken tikka with cheese.",
-  50: "Loaded egg and cheese chicken burger.",
   51: "Veg patty, lettuce, tomato and mayo.",
-  52: "Veg burger with cheese.",
-  53: "Veg patty with fries inside.",
-  54: "Veg patty, fries and cheese.",
   55: "Crispy paneer patty and veggies.",
-  56: "Paneer burger with extra cheese.",
   57: "Tandoori paneer tikka, mint mayo.",
-  58: "Paneer tikka with cheese.",
   59: "Chicken and cheese, grilled crisp.",
   60: "Triple-decker: chicken, egg, veggies.",
   61: "Chicken tikka and mint mayo, toasted.",
@@ -202,30 +167,15 @@ const DESCRIPTIONS = {
   93: "Mixed veggies and cheese.",
   94: "Mushrooms and melted cheese.",
   95: "Crispy fries, lightly salted.",
-  96: "Fries with cheese sauce.",
-  97: "Fries in spicy peri peri.",
-  98: "Peri peri fries with cheese.",
-  99: "Fries in fiery schezwan sauce.",
-  100: "Schezwan fries with cheese.",
   101: "Fries, crispy chicken, cheese sauce.",
   102: "Rice with chicken, egg and veggies.",
-  103: "Spicy schezwan rice with chicken.",
   104: "Noodles with chicken and veggies.",
-  105: "Schezwan noodles with chicken.",
   106: "Spicy fried chicken, curry leaves.",
   107: "Crispy chicken, chillies and soy.",
   108: "Rice with fresh veggies.",
-  109: "Spicy schezwan rice with veggies.",
-  110: "Veg fried rice with paneer.",
-  111: "Schezwan rice with paneer.",
   112: "Noodles with crunchy veggies.",
-  113: "Noodles in spicy schezwan sauce.",
-  114: "Noodles with paneer and veggies.",
-  115: "Schezwan noodles with paneer.",
   116: "Crumbed, fried chicken mince patty.",
   117: "Crispy potato and veggie patty.",
-  118: "Veg cutlet, cheesy centre.",
-  119: "Chicken cutlet, cheesy centre.",
 };
 
 // Dish photos, by menu number: shown across the top of the dish, and full size when tapped. Files live in img/.
@@ -233,21 +183,19 @@ const PHOTOS = {
   1: "img/dish-1.jpg",       // Chicken Shawarma Roll (₹120)
   37: "img/dish-37.jpg",     // Chicken Shawarma Plate With Salad
   38: "img/dish-38.jpg",     // Falafel Chicken Plate
-  41: "img/dish-41.jpg",     // Chicken Cheese Burger
+  40: "img/dish-41.jpg",     // Chicken Burger (the cheese burger photo)
   45: "img/dish-45.jpg",     // Chicken Crispy Burger
-  56: "img/dish-56.jpg",     // Paneer Cheese Burger
+  55: "img/dish-56.jpg",     // Paneer Burger (the cheese burger photo)
   59: "img/dish-59.jpg",     // Chicken Cheese Grilled Sandwich
   60: "img/dish-60.jpg",     // Non Veg Club Sandwich
   63: "img/dish-63.jpg",     // Chicken Shawarma Sandwich
   77: "img/dish-77.jpg",     // Grilled Cheese Sandwich
   84: "img/dish-84-2.jpg",   // Chicken Cheese Pizza (new photo; a new name so phones don't show the old cached one)
-  95: "img/dish-95.jpg",     // Salted Fries
-  97: "img/dish-97.jpg",     // Peri Peri Fries
-  103: "img/dish-103.jpg",   // Chicken Schezwan Fried Rice
+  95: "img/dish-95.jpg",     // French Fries
+  102: "img/dish-103.jpg",   // Chicken Fried Rice (the schezwan rice photo)
   104: "img/dish-104.jpg",   // Chicken Hakka Noodles
   106: "img/dish-106.jpg",   // Chicken 65
   116: "img/dish-116.jpg",   // Chicken Cutlet
-  119: "img/dish-119.jpg",   // Chicken Cheese Cutlet
   121: "img/dish-121.jpg",   // Fresh Lime Soda
   136: "img/dish-136.jpg",   // Hot Coffee
 };
