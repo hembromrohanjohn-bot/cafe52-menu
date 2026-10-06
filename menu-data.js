@@ -241,6 +241,7 @@ const PHOTOS = {
   95: "img/dish-95.jpg",     // Salted Fries
   97: "img/dish-97.jpg",     // Peri Peri Fries
   103: "img/dish-103.jpg",   // Chicken Schezwan Fried Rice
+  104: "img/dish-104.jpg",   // Chicken Hakka Noodles
   106: "img/dish-106.jpg",   // Chicken 65
   116: "img/dish-116.jpg",   // Chicken Cutlet
   121: "img/dish-121.jpg",   // Fresh Lime Soda
