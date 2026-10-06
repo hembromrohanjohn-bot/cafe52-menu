@@ -8,8 +8,8 @@ const MENU = {
 food: [
   ["Rolls", "Shawarma, fila, angara, tikka & shish taouk wraps", [
     ["Chicken", "n", [
-      [1,"Chicken Shawarma Roll",120],[3,"Chicken Shawarma With Hummus",130],[4,"Chicken Shawarma Falafel Roll With Hummus",150],
-      [5,"Chicken Shawarma Roll",160],[6,"Chicken Shawarma Without Salad Roll",170],[7,"Fila Chicken Roll",140],
+      [1,"Chicken Shawarma Roll",120],[4,"Chicken Shawarma Falafel Roll With Hummus",150],
+      [6,"Chicken Shawarma Without Salad Roll",170],[7,"Fila Chicken Roll",140],
       [8,"Fila Chicken Roll Without Salad",160],[11,"Angara Roll",130],[14,"Chicken Tikka Roll",130],[17,"Shish Taouk Roll",130]]],
     ["Veg", "v", [
       [20,"Paneer Roll",130],[21,"Paneer Roll Without Salad",150],[23,"Mix Veg Roll",120],[25,"Falafel Roll",140],
@@ -101,9 +101,7 @@ const ADDONS = {
 // A short description under each dish, by menu number. Drinks have none yet.
 const DESCRIPTIONS = {
   1: "Chicken shawarma, garlic sauce, pickles in pita.",
-  3: "Shawarma chicken with creamy hummus.",
   4: "Shawarma chicken, falafel and hummus.",
-  5: "Our shawarma roll, bigger and loaded.",
   6: "Shawarma chicken and garlic sauce, no veggies.",
   7: "Spiced chicken in a crisp, flaky wrap.",
   8: "Extra fila chicken and sauce, no greens.",
