@@ -24,7 +24,7 @@ window.MENU_CONFIG = {
   // "Post on Google" after a guest rates their food. Best: the "Ask for reviews" link from Google Business Profile
   // (looks like https://g.page/r/XXXX/review), which opens the review box directly. Until it's set, Google Maps opens
   // on the search below and guests tap "Write a review".
-  googleReviewUrl: "",
+  googleReviewUrl: "https://g.page/r/Cb1JARiFiwFTEAE/review",
   googlePlaceQuery: "Café 52, Shop No. 41/42 Kumar Plaza co-op society MG road, Fashion St, Pune, Maharashtra 411001",
 
   // Orders are saved to Café 52's own Firebase project, and the staff screen reads them.
