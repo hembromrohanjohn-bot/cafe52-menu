@@ -66,54 +66,6 @@ async function fetchOrders(start, end) {
   return orders;
 }
 
-// Guest ratings given in the period (cart/ratings.js): { items: { "item-1": 5 }, comment, createdAt }
-async function fetchRatings(start, end) {
-  const key = "r" + start.getTime() + "-" + end.getTime();
-  if (cache.has(key) && end <= new Date()) return cache.get(key);
-  const q = query(collection(db, "restaurants", C.restaurantId, "ratings"),
-    where("createdAt", ">=", Timestamp.fromDate(start)), where("createdAt", "<", Timestamp.fromDate(end)), orderBy("createdAt", "desc"));
-  const list = (await getDocs(q)).docs.map(d => d.data());
-  cache.set(key, list);
-  return list;
-}
-
-const STAR_WORDS = ["", "Poor", "Not great", "Good", "Very good", "Loved it"];
-const starText = n => "★".repeat(n) + "☆".repeat(5 - n);
-// Adds up guest ratings: per-dish averages (best first), the overall average, and the notes guests left
-function rateData(list) {
-  const names = {};
-  // MENU comes from menu-data.js (a top-level const, so not on window)
-  for (const secs of Object.values(typeof MENU !== "undefined" ? MENU : {}))
-    for (const [, , groups] of secs) for (const [, , items] of groups) for (const [no, name] of items) names["item-" + no] = name;
-  const byDish = new Map();
-  for (const r of list) for (const [id, n] of Object.entries(r.items || {})) {
-    const d = byDish.get(id) || { id, no: dishNo(id), name: names[id] || id, s: 0, n: 0 };
-    d.s += n; d.n++; byDish.set(id, d);
-  }
-  const rows = [...byDish.values()].map(d => ({ ...d, avg: d.s / d.n })).sort((a, b) => b.avg - a.avg || b.n - a.n);
-  const all = rows.reduce((t, d) => ({ s: t.s + d.s, n: t.n + d.n }), { s: 0, n: 0 });
-  const notes = list.filter(r => r.comment || r.phone).map(r => ({
-    when: r.createdAt?.toDate ? r.createdAt.toDate() : null,
-    comment: r.comment || "",
-    phone: r.phone || "",
-    dishes: Object.entries(r.items || {}).map(([id, n]) => ({ name: names[id] || id, n }))
-  }));
-  return { rows, avg: all.n ? all.s / all.n : null, count: all.n, notes };
-}
-const noteTime = d => d ? d.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
-
-function paintRatings(rt) {
-  $("#k-rating").textContent = rt.avg != null ? `★ ${rt.avg.toFixed(1)}` : "–";
-  $("#ratings-body").innerHTML = rt.rows.length
-    ? rt.rows.map(d => `<tr><td class="no">${d.no ?? ""}</td><td class="nm">${esc(d.name)}</td><td class="r stars">★ ${d.avg.toFixed(1)}</td><td class="r">${num(d.n)}</td></tr>`).join("")
-    : '<tr><td colspan="4" class="none">No ratings yet for this period.</td></tr>';
-  $("#comments").innerHTML = rt.notes.length
-    ? rt.notes.map(r => `<li>${r.comment ? `<p>“${esc(r.comment)}”</p>` : '<p class="c-none">No review written</p>'}<div class="c-meta">${esc(noteTime(r.when))}`
-        + (r.phone ? ` · <a href="tel:+91${esc(r.phone)}">+91 ${esc(r.phone.slice(0, 5))} ${esc(r.phone.slice(5))}</a>` : "") + `</div><div class="c-dishes">`
-        + r.dishes.map(d => `<span title="${esc(STAR_WORDS[d.n])}">${esc(d.name)} <b>${starText(d.n)}</b></span>`).join("") + "</div></li>").join("")
-    : '<li class="none">No reviews from guests in this period.</li>';
-}
-
 function tally(orders) {
   const items = new Map(), days = new Map(), months = new Map();
   let revenue = 0, count = 0;
@@ -149,11 +101,10 @@ async function load() {
   $("#status").hidden = false;
   $("#status").textContent = "Adding up the orders…";
   try {
-    const [orders, ratings] = await Promise.all([fetchOrders(p.start, p.end), fetchRatings(p.start, p.end).catch(err => { console.warn("[sales] Ratings:", err); return []; })]);
-    last = { ...tally(orders), p, rt: rateData(ratings) };
+    const orders = await fetchOrders(p.start, p.end);
+    last = { ...tally(orders), p };
     $("#status").hidden = true;
     paint();
-    paintRatings(last.rt);
   } catch (err) {
     console.error("[sales] Couldn't load orders:", err);
     $("#status").textContent = err.code === "permission-denied"
@@ -236,7 +187,7 @@ function loadExcel() {
   return excelLib;
 }
 
-// A workbook with three sheets, each set up to print on A4: Summary, Items sold, Ratings
+// A workbook with two sheets, each set up to print on A4: Summary, Items sold
 async function buildWorkbook(ExcelJS) {
   const r = last, p = r.p;
   const wb = new ExcelJS.Workbook();
@@ -286,8 +237,7 @@ async function buildWorkbook(ExcelJS) {
 
   // 1. Summary
   const s1 = sheet("Summary", [26, 16, 16, 18]);
-  const kpis = [["Orders", r.orders], ["Items sold", r.count], ["Sales", r.revenue], ["Average order", r.orders ? Math.round(r.revenue / r.orders) : 0],
-    ["Guest rating", r.rt.avg != null ? `${r.rt.avg.toFixed(1)} / 5  (${r.rt.count} ratings)` : "No ratings"]];
+  const kpis = [["Orders", r.orders], ["Items sold", r.count], ["Sales", r.revenue], ["Average order", r.orders ? Math.round(r.revenue / r.orders) : 0]];
   for (const [k, v] of kpis) {
     const row = s1.addRow([k, v]);
     row.getCell(1).font = { bold: true, color: { argb: "FF5D6877" } };
@@ -323,28 +273,6 @@ async function buildWorkbook(ExcelJS) {
     s2.getCell(`E${s2.rowCount}`).numFmt = RUPEE;
     s2.getCell(`D${s2.rowCount}`).alignment = s2.getCell(`E${s2.rowCount}`).alignment = { horizontal: "right" };
   } else s2.addRow(["", "No orders in this period."]);
-
-  // 3. Ratings: per-dish averages, then the notes guests left
-  const s3 = sheet("Ratings", [17, 40, 12, 16, 40]);
-  const h3 = header(s3, ["No.", "Dish", "Average", "Ratings"], 3);
-  s3.pageSetup.printTitlesRow = `${h3.number}:${h3.number}`;
-  if (r.rt.rows.length) r.rt.rows.forEach(d => {
-    const row = s3.addRow([d.no ?? "", d.name, Math.round(d.avg * 10) / 10, d.n]);
-    body(row, [], [1, 3, 4]);
-    row.getCell(3).numFmt = '0.0" ★"';
-  });
-  else s3.addRow(["", "No ratings in this period."]);
-  s3.addRow([]);
-  const hn = s3.addRow(["", "Reviews from guests"]);
-  hn.getCell(2).font = { bold: true, size: 13, color: { argb: CRIMSON } };
-  header(s3, ["When", "Review", "", "Phone", "Dishes rated"], 99);
-  if (r.rt.notes.length) r.rt.notes.forEach(n => {
-    const row = s3.addRow([noteTime(n.when), n.comment, "", n.phone ? `+91 ${n.phone}` : "", n.dishes.map(d => `${d.name} ${starText(d.n)}`).join("\n")]);
-    s3.mergeCells(row.number, 2, row.number, 3);
-    row.eachCell({ includeEmpty: true }, c => { c.alignment = { wrapText: true, vertical: "top" }; c.border = { bottom: thin }; });
-    row.getCell(2).font = { italic: true };
-  });
-  else s3.addRow(["", "No reviews from guests in this period."]);
 
   return wb;
 }

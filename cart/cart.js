@@ -315,7 +315,7 @@
           saveTracked();
           live.textContent = `Order ${entry.code}: ${STATUS[status].label}. ${STATUS[status].note}`;
           refresh();
-          document.dispatchEvent(new CustomEvent("cart:orders"));   // e.g. ratings.js offers "Rate your food" once served
+          document.dispatchEvent(new CustomEvent("cart:orders"));   // e.g. google-review.js offers "Review us on Google" once served
         });
         watching.set(o.id, stop);
       }).catch(err => { watching.delete(o.id); console.warn("[cart] Couldn't load order status:", err); });

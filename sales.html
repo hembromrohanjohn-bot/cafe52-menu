@@ -39,24 +39,11 @@
   .ghost.solid { background: var(--st-brand); border-color: var(--st-brand); color: #fff; }
   h1.period { margin: 0; font: 400 40px/1.1 var(--st-font-strong); letter-spacing: .02em; text-transform: uppercase; color: var(--st-brand); }
   .note { margin: 4px 0 0; font: italic 15px var(--st-font-soft); color: var(--st-muted); }
-  .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
   .kpi { padding: 14px 16px; border-radius: 16px; background: var(--st-bg); }
   .kpi small { display: block; font: 400 13px var(--st-font-strong); letter-spacing: .16em; text-transform: uppercase; color: var(--st-muted); }
   .kpi b { display: block; margin-top: 4px; font: 400 30px/1.1 var(--st-font-strong); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
   .kpi.money b { color: var(--st-brand); }
-  .kpi.stars b, td.stars { color: #B7860B; }
-  td.stars { font-weight: 700; }
-  .ratings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 900px) { .ratings-grid { grid-template-columns: 1fr; } }
-  #comments { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-  #comments li { padding: 12px 14px; border-radius: 14px; background: var(--st-bg); }
-  #comments li.none { background: none; text-align: center; color: var(--st-muted); font: italic 16px var(--st-font-soft); padding: 26px 10px; }
-  #comments p { margin: 0; font: italic 16px/1.45 var(--st-font-soft); }
-  .c-meta { margin-top: 6px; font-size: 13px; color: var(--st-muted); }
-  .c-dishes { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13.5px; }
-  .c-dishes b { color: #B7860B; letter-spacing: .05em; }
-  .c-meta a { color: var(--st-brand); font-weight: 600; text-decoration: none; }
-  #comments p.c-none { font-style: normal; color: var(--st-muted); font-size: 14px; }
   @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) { .kpis { grid-template-columns: 1fr 1fr; } h1.period { font-size: 32px; } .out { margin-left: 0; } }
   h2.tbl-h { margin: 0 0 10px; font: 400 22px var(--st-font-strong); letter-spacing: .06em; text-transform: uppercase; }
@@ -100,10 +87,7 @@
     th, td { padding: 5px 8px; font-size: 12px; }
     th { position: static; }
     tr { break-inside: avoid; }
-    .ratings-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
-    #comments li { padding: 6px 10px; }
-    #comments p { font-size: 13px; }
-    #by-body tr { cursor: default; }
+        #by-body tr { cursor: default; }
   }
 </style>
 
@@ -154,7 +138,6 @@
       <div class="kpi"><small>Items sold</small><b id="k-items">–</b></div>
       <div class="kpi money"><small>Sales</small><b id="k-revenue">–</b></div>
       <div class="kpi"><small>Average order</small><b id="k-avg">–</b></div>
-      <div class="kpi stars"><small>Guest rating</small><b id="k-rating">–</b></div>
     </div>
   </section>
   <p class="status" id="status" hidden></p>
@@ -170,22 +153,6 @@
     </div>
   </section>
 
-  <div class="ratings-grid">
-    <section class="panel">
-      <h2 class="tbl-h">Guest ratings</h2>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>No.</th><th>Dish</th><th class="r">Average</th><th class="r">Ratings</th></tr></thead>
-          <tbody id="ratings-body"></tbody>
-        </table>
-      </div>
-    </section>
-    <section class="panel">
-      <h2 class="tbl-h">Reviews from guests</h2>
-      <ul id="comments"></ul>
-    </section>
-  </div>
-
   <section class="panel" id="by" hidden>
     <h2 class="tbl-h" id="by-h"></h2>
     <div class="tbl-wrap">
@@ -199,5 +166,5 @@
 
 <script src="config.js?v=20261007a"></script>
 <script src="menu-data.js?v=20261007e"></script>
-<script type="module" src="cart/sales.js?v=20261003b"></script>
+<script type="module" src="cart/sales.js?v=20261007f"></script>
 </html>

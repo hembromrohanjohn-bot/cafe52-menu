@@ -142,7 +142,7 @@ section.sec { margin-top: 22px; background: var(--card); border-radius: 20px; ov
 .nm { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
 .nm .mark { margin-top: 3px; }
 .nm .t { font: 600 16px/1.3 var(--sans); color: var(--ink); letter-spacing: -.005em; }
-/* one quiet line under the description: number · add-ons · rating */
+/* one quiet line under the description: number · add-ons */
 .nm .meta { display: flex; flex-wrap: wrap; align-items: center; margin-top: 6px; font: 500 12px var(--sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .nm .meta > * + *::before { content: "·"; margin: 0 7px; color: var(--ink-soft); opacity: .7; }
 .nm .tag { margin-left: 6px; vertical-align: 1px; }
@@ -180,59 +180,16 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
 .cart-sheet .cart-review-hint { border-color: var(--gold); color: #fff; }
 .item .cart-step { min-height: 36px; box-shadow: inset 0 -2px 0 var(--gold); }
 .item .cart-step button { width: 34px; height: 36px; }
-/* Ratings: average under the dish name, the "How was your food?" card, and the rating sheet */
-.nm .stars { white-space: nowrap; }
-.nm .stars b { color: var(--gold); font-weight: 700; }
-.nm .stars span { margin-left: 3px; }
+/* "Review us on Google" (cart/google-review.js): the card at the top of the menu, the tracker button, the footer link */
 .rate-prompt { display: flex; align-items: center; gap: 14px; margin: 16px 14px 0; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, rgba(242,189,44,.18), rgba(192,24,47,.18)); border: 1.5px solid var(--gold); }
 .rate-prompt div { flex: 1; min-width: 0; }
 .rate-prompt b { display: block; font: 400 20px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
 .rate-prompt span { font-size: 14px; color: #E6EAEF; }
 .rate-open { flex: none; min-height: 42px; padding: 0 18px; border-radius: 999px; border: 0; cursor: pointer; background: var(--gold); color: var(--slate-deep); font: 400 15px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.rate-open { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .cart-track .rate-open { margin-top: 12px; width: 100%; }
-.rate-dialog { width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px); padding: 0; border: 0; border-radius: 20px; background: var(--slate); color: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.5); overflow: hidden; border-top: 5px solid var(--gold); }
-.rate-dialog[open] { display: block; }
-.rate-dialog::backdrop { background: rgba(10,12,16,.7); }
-.rate-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 10px 8px 20px; }
-.rate-head h2 { margin: 0; font: 400 28px var(--display); letter-spacing: .03em; text-transform: uppercase; color: var(--gold); }
-.rate-x { width: 44px; height: 44px; border: 0; background: none; color: var(--ink-soft); font-size: 30px; cursor: pointer; }
-/* Plain block layout with a capped, scrolling body. A flex column here collapsed the body to nothing in iPhone Safari. */
-.rate-body { max-height: calc(100vh - 230px); max-height: calc(100dvh - 230px); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px 8px; }
-.rate-note { margin: 0 0 10px; font: italic 500 15px/1.45 var(--serif); color: var(--ink-soft); }
-.rate-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
-.rate-name { font-weight: 600; font-size: 15.5px; }
-.rate-stars { display: flex; }
-.rate-stars button { width: 40px; height: 44px; border: 0; background: none; cursor: pointer; font-size: 30px; line-height: 1; color: #56616E; padding: 0; }
-.rate-stars button.on { color: var(--gold); }
-.rate-word { grid-column: 1 / -1; min-height: 1em; font-size: 13px; color: var(--gold); text-align: right; }
-.rate-comment { display: block; margin-top: 10px; font-weight: 600; font-size: 14px; }
-.rate-comment span { font-weight: 400; color: var(--ink-soft); }
-.rate-comment textarea { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: #3A4552; color: #fff; font: 16px/1.4 var(--sans); resize: vertical; }
-.rate-comment textarea:focus { outline: none; border-color: var(--gold); }
-.rate-phone { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; }
-.rate-phone > span:first-of-type { font-weight: 400; color: var(--ink-soft); }
-.rate-phone-in { display: flex; align-items: stretch; margin-top: 6px; border-radius: 10px; border: 1.5px solid var(--line); background: #3A4552; overflow: hidden; }
-.rate-phone-in:focus-within { border-color: var(--gold); }
-.rate-phone-in > span { display: grid; place-items: center; padding: 0 12px; background: rgba(0,0,0,.2); color: var(--ink-soft); font: 600 16px var(--sans); }
-.rate-phone-in input { flex: 1; min-width: 0; min-height: 46px; padding: 0 12px; border: 0; background: none; color: #fff; font: 600 17px var(--sans); letter-spacing: .06em; }
-.rate-phone-in input:focus { outline: none; }
-.rate-phone-in input::placeholder { color: #AEB8C4; letter-spacing: 0; font-weight: 400; }
-.rate-phone-in:has(input[aria-invalid="true"]) { border-color: #FF8A9A; }
-.rate-phone small { display: block; margin-top: 6px; font: italic 500 13px/1.4 var(--serif); color: var(--ink-soft); }
-.rate-google { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid var(--line); text-align: center; }
-.rate-google p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.45; }
-.rate-google b { color: var(--gold); }
-.rate-google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px; border-radius: 12px; border: 0; cursor: pointer; background: #fff; color: #1F1F1F; font: 600 16px var(--sans); }
-.rate-google-btn svg { width: 22px; height: 22px; }
-.rate-copied { margin: 10px 0 0 !important; font-size: 13.5px !important; color: var(--gold); }
-.rate-foot { padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
-.rate-send { width: 100%; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: var(--crimson); color: #fff; border-bottom: 3px solid var(--gold); font: 400 18px var(--display); letter-spacing: .1em; text-transform: uppercase; }
-.rate-send:disabled { opacity: .5; cursor: default; }
-.rate-error { margin: 0 0 10px; color: #FFB4BE; font-weight: 600; font-size: 14px; }
-.rate-done { text-align: center; padding: 20px 0 10px; }
-.rate-done-mark { width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--slate-deep); font-size: 32px; }
-.rate-done b { font: 400 30px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--gold); }
-
+.rate-prompt .rate-x { flex: none; width: 36px; height: 44px; margin-right: -8px; border: 0; background: none; cursor: pointer; color: var(--ink-soft); font-size: 26px; }
+.greview-foot { margin-top: 8px; font: 600 14px var(--sans); font-style: normal; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
 /* Sold out (marked on the staff screen): dimmed, price struck through, a label instead of + Add */
 .item.is-soldout .nm, .item.is-soldout .price { opacity: .42; }
 .item.is-soldout .price { text-decoration: line-through; text-decoration-thickness: 2px; }
@@ -362,21 +319,12 @@ function addonHint(no) {
 }
 // Lets the cart re-check a saved order against today's menu (config.js getItem)
 function cartItem(id) { const it = ITEM[String(id).replace("item-", "")]; return it ? { name: label(it.no), price: it.price } : null; }
-// Average guest rating (cart/ratings.js loads RATINGS), shown once a dish has a few ratings
-const MIN_RATINGS = 3;
-function starsHTML(no) {
-  const r = (window.RATINGS || {})["item-" + no];
-  if (!r || !(r.n >= MIN_RATINGS)) return "";
-  const avg = r.s / r.n;
-  return `<span class="stars" aria-label="Rated ${avg.toFixed(1)} out of 5 by ${r.n} guests"><b aria-hidden="true">★ ${avg.toFixed(1)}</b><span aria-hidden="true">(${r.n})</span></span>`;
-}
-window.renderRatings = () => render();
 const descOf = no => (typeof DESCRIPTIONS !== "undefined" && DESCRIPTIONS[no]) || "";
 function itemHTML([no, name, price, d]) {
   const desc = descOf(no), photo = typeof PHOTOS !== "undefined" && PHOTOS[no];
   return `<div class="item${photo ? " has-photo" : ""}"${cartAttrs(no)}>`
     + (photo ? `<button type="button" class="ph" data-photo="${esc(photo)}" data-name="${esc(name)}" aria-label="See a photo of ${esc(name)}"><img src="${esc(photo)}" alt="${esc(name)}" loading="lazy" decoding="async"></button>` : "")
-    + `<div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}${desc ? `<span class="d">${esc(desc)}</span>` : ""}<span class="meta"><span>No. ${no}</span>${addonHint(no)}${starsHTML(no)}</span></div></div><div class="price">${price}</div></div>`;
+    + `<div class="nm">${markHTML(d)}<div><span class="t">${esc(name)}</span>${d === "e" ? '<span class="tag egg">EGG</span>' : ""}${desc ? `<span class="d">${esc(desc)}</span>` : ""}<span class="meta"><span>No. ${no}</span>${addonHint(no)}</span></div></div><div class="price">${price}</div></div>`;
 }
 
 function emptyHTML(q) {
@@ -505,6 +453,6 @@ render();
 </script>
 <script src="config.js?v=20261007a"></script>
 <script src="cart/cart.js?v=20261007b" charset="utf-8"></script>
-<script type="module" src="cart/ratings.js?v=20261003a"></script>
+<script src="cart/google-review.js?v=20261007f"></script>
 </body>
 </html>
