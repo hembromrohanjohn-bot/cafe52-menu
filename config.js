@@ -23,7 +23,7 @@ window.MENU_CONFIG = {
   // Bills: guests can open "View bill" under their order. With billPhone true the order screen also asks for an
   // optional mobile number, which the staff screen uses for "SMS bill". Needs the "phone" rule in firestore.rules
   // to be published first, or orders with a number are refused.
-  billPhone: false,
+  billPhone: true,
 
   upi: { id: "paytmqr61mzr3@ptys", name: "Café 52" },
 
