@@ -41,7 +41,9 @@ service cloud.firestore {
       allow create: if rid in staffEmails()
         && orderingOpen(rid)
         && request.resource.data.keys().hasAll(['restaurant', 'table', 'code', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
-        && request.resource.data.keys().hasOnly(['restaurant', 'table', 'code', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
+        && request.resource.data.keys().hasOnly(['restaurant', 'table', 'code', 'items', 'notes', 'phone', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
+        // optional Indian mobile number for the bill (10 digits, starting 6–9)
+        && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.matches('^[6-9][0-9]{9}$')))
         && request.resource.data.code is string
         && codeOk(rid, request.resource.data.code)
         && request.resource.data.restaurant == rid

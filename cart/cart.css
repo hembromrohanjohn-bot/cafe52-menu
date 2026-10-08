@@ -164,6 +164,44 @@ html.cart-has-bar body { padding-bottom: calc(84px + env(safe-area-inset-bottom,
 .cart-track-cancel { margin: 14px 0 0; text-align: center; font-weight: 700; font-size: 17px; color: #8A1C0C; }
 .cart-track-link { display: block; margin: 10px 0 0; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 14px; color: var(--cart-ink, #222); text-decoration: underline; text-underline-offset: 3px; text-align: left; }
 .cart-bar-status { font-variant-numeric: normal; }
+/* Mobile number for the bill (MENU_CONFIG.billPhone) */
+.cart-phone { padding: 12px 0 4px; }
+.cart-phone[hidden] { display: none !important; }
+.cart-phone label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14.5px; }
+.cart-phone label span { font-weight: 400; color: var(--cart-muted, #666); }
+.cart-phone-in { display: flex; align-items: stretch; border-radius: 10px; border: 1.5px solid var(--cart-line, #ccc); overflow: hidden; }
+.cart-phone-in:focus-within { border-color: var(--cart-accent, #222); }
+.cart-phone-in > span { display: grid; place-items: center; padding: 0 12px; background: rgba(0, 0, 0, .12); color: var(--cart-muted, #666); font-weight: 600; }
+.cart-phone-in input { flex: 1; min-width: 0; min-height: 46px; padding: 0 12px; border: 0; background: none; font: 600 17px var(--cart-font, inherit); letter-spacing: .04em; color: inherit; }
+.cart-phone-in input:focus { outline: none; }
+.cart-phone-in:has(input[aria-invalid="true"]) { border-color: #D2452F; }
+.cart-phone small { display: block; margin-top: 6px; font-size: 13px; color: var(--cart-muted, #666); }
+/* View bill: button under an order, and the bill itself */
+.cart-bill-btn { display: block; width: 100%; min-height: 44px; margin-top: 12px; border-radius: 12px; border: 1.5px solid var(--cart-line, #ccc); background: none; cursor: pointer; font: inherit; font-weight: 700; color: var(--cart-ink, #222); }
+.cart-bill { width: min(420px, calc(100% - 24px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: 18px; background: #fff; color: #1F1F1F; box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
+.cart-bill::backdrop { background: rgba(10, 12, 16, .75); }
+.cart-bill-paper { padding: 22px 22px 8px; font-variant-numeric: tabular-nums; }
+.cart-bill h2 { margin: 0; text-align: center; font-family: var(--cart-font-head, inherit); font-weight: 400; font-size: 30px; letter-spacing: .03em; text-transform: uppercase; }
+.cart-bill-addr { margin: 4px 0 0; text-align: center; font-size: 12.5px; color: #666; }
+.cart-bill-meta { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 14px 0 0; padding: 10px 0; border-block: 1px dashed #bbb; font-size: 13.5px; color: #444; }
+.cart-bill table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 15px; }
+.cart-bill td { padding: 8px 0; vertical-align: top; border-bottom: 1px solid #eee; }
+.cart-bill td.q { width: 34px; color: #666; }
+.cart-bill td.r { text-align: right; white-space: nowrap; padding-left: 10px; }
+.cart-bill td small { display: block; margin-top: 2px; font-size: 12.5px; color: #666; }
+.cart-bill tfoot td { border: 0; border-top: 2px solid #1F1F1F; padding-top: 10px; font-weight: 700; font-size: 18px; }
+.cart-bill-status { margin: 12px 0 0; text-align: center; font-weight: 700; color: #8A4B12; }
+.cart-bill-status.paid { color: #1E7A35; }
+.cart-bill-thanks { margin: 8px 0 0; text-align: center; font-size: 13.5px; color: #666; }
+.cart-bill-actions { display: flex; gap: 10px; padding: 14px 22px 20px; }
+.cart-bill-actions > * { flex: 1; margin: 0 !important; }
+.cart-bill .cart-bill-actions .cart-secondary { background: #fff; color: #1F1F1F; border: 1.5px solid #1F1F1F; }
+@media print {
+  body > *:not(.cart-bill) { display: none !important; }
+  .cart-bill { position: static; box-shadow: none; width: 100%; max-height: none; }
+  .cart-bill::backdrop { display: none; }
+  .cart-bill-actions { display: none; }
+}
 /* Pay by UPI under an order */
 .cart-pay { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--cart-line, #ddd); text-align: center; }
 .cart-pay-title { margin: 0 0 10px; font-family: var(--cart-font-strong, inherit); font-size: 18px; letter-spacing: .06em; text-transform: uppercase; color: var(--cart-ink, #222); }

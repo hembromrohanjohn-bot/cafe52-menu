@@ -3,6 +3,7 @@
 window.MENU_CONFIG = {
   restaurantId: "cafe52",
   restaurantName: "Café 52",
+  address: "Shop 41/42, Kumar Plaza, MG Road, Fashion Street, Camp, Pune 411001",   // printed on the bill
   currency: "₹",
   locale: "en-IN",
   serviceChargePercent: 0,
@@ -19,6 +20,11 @@ window.MENU_CONFIG = {
   // Pay by UPI after ordering: the guest's order screen shows "Pay ₹X with UPI", which opens GPay / PhonePe / Paytm
   // with this UPI ID and the order total filled in. Staff check the payment arrived and tap "Paid" on the staff screen.
   // Leave id empty to hide the Pay button. A business/merchant UPI ID works most reliably.
+  // Bills: guests can open "View bill" under their order. With billPhone true the order screen also asks for an
+  // optional mobile number, which the staff screen uses for "SMS bill". Needs the "phone" rule in firestore.rules
+  // to be published first, or orders with a number are refused.
+  billPhone: false,
+
   upi: { id: "paytmqr61mzr3@ptys", name: "Café 52" },
 
   // "Post on Google" after a guest rates their food. Best: the "Ask for reviews" link from Google Business Profile

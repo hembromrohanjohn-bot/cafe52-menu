@@ -30,6 +30,9 @@
  * that opens the guest's UPI app with the amount filled in, plus the UPI ID to copy. Nothing confirms the payment
  * automatically: staff check it arrived and mark the order Paid on the staff screen, which the guest then sees.
  *
+ * Bills: "View bill" under each order shows an itemised bill the guest can save or print. With MENU_CONFIG.billPhone
+ * the order screen also asks for an optional mobile number (saved with the order as "phone") for the staff screen's "SMS bill".
+ *
  * Menus that re-render their items (tabs, search, filters) are fine: a MutationObserver re-adds the
  * controls every time the item list changes. With orderingEnabled anything but true, this file does nothing.
  */
@@ -95,7 +98,7 @@
   const SHOW_FINAL_MS = 15 * 60e3;     // keep showing a served or cancelled order for 15 minutes
 
   const trackKey = () => "orders:" + (C.restaurantId || location.pathname) + (table ? ":" + table : "");
-  let tracked = [];                    // { id, code, table, at, status, statusAt, total, paid }, newest first
+  let tracked = [];                    // { id, code, table, at, status, statusAt, total, paid, items }, newest first
   const watching = new Map();          // order id -> function that stops watching
 
   function loadTracked() {
@@ -326,6 +329,14 @@
 
   let lines = [];   // { key, id, name, variant, unitPrice, qty }
   let notes = "";
+  // Optional mobile number for the bill (MENU_CONFIG.billPhone), remembered on this phone for next time
+  const billPhone = C.billPhone === true;
+  const PHONE_KEY = "phone:" + (C.restaurantId || location.pathname);
+  let phone = "";
+  try { phone = localStorage.getItem(PHONE_KEY) || ""; } catch (_) {}
+  // Indian mobile: 10 digits starting 6–9; a typed "+91" or leading 0 is dropped
+  const cleanPhone = v => String(v || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  const phoneOk = v => /^[6-9]\d{9}$/.test(cleanPhone(v));
 
   function load() {
     try {
@@ -455,6 +466,7 @@
       items: lines.map(l => ({ id: l.id, name: l.name, variant: l.variant, extras: (l.extras || []).map(e => ({ name: e.name, price: e.price })),
         qty: l.qty, unitPrice: eachPrice(l), lineTotal: eachPrice(l) * l.qty })),
       notes: notes.trim(),
+      ...(billPhone && cleanPhone(phone) ? { phone: cleanPhone(phone) } : {}),
       subtotal: t.subtotal,
       serviceCharge: t.serviceCharge,
       total: t.total,
@@ -654,6 +666,34 @@
       + `<p class="cart-pay-note">Or pay at the counter.</p></div>`;
   }
 
+  // An itemised bill for one of this phone's orders, in a dialog the guest can screenshot, save or print
+  let billDlg = null;
+  function openBill(id) {
+    const o = tracked.find(t => t.id === id);
+    if (!o || !Array.isArray(o.items)) return;
+    if (!billDlg) {
+      billDlg = document.createElement("dialog");
+      billDlg.className = "cart-bill";
+      billDlg.setAttribute("aria-label", "Bill");
+      billDlg.addEventListener("click", e => {
+        if (e.target === billDlg || e.target.closest("[data-bill-close]")) billDlg.close();
+        if (e.target.closest("[data-bill-print]")) window.print();
+      });
+      document.body.append(billDlg);
+    }
+    const when = new Date(o.at).toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+    billDlg.innerHTML = `<div class="cart-bill-paper"><h2>${esc(C.restaurantName || "Bill")}</h2>`
+      + (C.address ? `<p class="cart-bill-addr">${esc(C.address)}</p>` : "")
+      + `<p class="cart-bill-meta"><span>Order #${esc(o.code)}${o.table ? ` · Table ${esc(o.table)}` : ""}</span><span>${esc(when)}</span></p>`
+      + `<table><tbody>${o.items.map(i => `<tr><td class="q">${esc(i.qty)}×</td><td>${esc(i.name)}${i.variant ? ` (${esc(i.variant)})` : ""}`
+        + (i.extras && i.extras.length ? `<small>+ ${esc(i.extras.join(", "))}</small>` : "") + `</td><td class="r">${money(i.lineTotal)}</td></tr>`).join("")}</tbody>`
+      + `<tfoot><tr><td></td><td>Total</td><td class="r">${money(o.total)}</td></tr></tfoot></table>`
+      + `<p class="cart-bill-status${o.paid ? " paid" : ""}">${o.paid ? "✓ Paid" : "Not paid yet"}</p>`
+      + `<p class="cart-bill-thanks">Thank you for visiting ${esc(C.restaurantName || "us")}!</p></div>`
+      + `<div class="cart-bill-actions"><button type="button" class="cart-secondary" data-bill-print>Save / Print</button><button type="button" class="cart-primary" data-bill-close>Close</button></div>`;
+    billDlg.showModal();
+  }
+
   function trackerHTML(o) {
     const step = STEPS.indexOf(o.status);
     let html = `<div class="cart-track" data-status="${esc(o.status)}"><div class="cart-track-head"><span class="cart-code">Order #${esc(o.code)}</span>`
@@ -663,7 +703,9 @@
       `<li class="${i < step ? "done" : i === step ? "now" : ""}"${i === step ? ' aria-current="step"' : ""}><span class="cart-dot" aria-hidden="true"></span>${esc(STATUS[s].label)}</li>`).join("") + "</ol>";
     let extra = "";
     if (typeof C.trackerExtra === "function") { try { extra = C.trackerExtra(o) || ""; } catch (_) {} }
-    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${payHTML(o)}${extra}</div>`;
+    const bill = Array.isArray(o.items) && o.items.length && o.status !== "cancelled"
+      ? `<button type="button" class="cart-bill-btn" data-cart-act="bill" data-id="${esc(o.id)}">View bill</button>` : "";
+    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${payHTML(o)}${bill}${extra}</div>`;
   }
 
   function lineHTML(l) {
@@ -753,6 +795,9 @@
       bodyEl.innerHTML = '<div class="cart-where"></div><div class="cart-lines"></div>'
         + '<div class="cart-notes"><label for="cart-notes">Notes for the kitchen <span>(optional)</span></label>'
         + '<textarea id="cart-notes" rows="2" maxlength="300" placeholder="For example: less spicy, no onion"></textarea></div>'
+        + (billPhone ? '<div class="cart-phone"><label for="cart-phone">Mobile number for your bill <span>(optional)</span></label>'
+          + '<div class="cart-phone-in"><span>+91</span><input id="cart-phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14" placeholder="10-digit mobile number"></div>'
+          + '<small>We’ll text your bill to this number.</small></div>' : "")
         + '<div class="cart-sum"></div>'
         + '<p class="cart-paused-note" hidden>Ordering is paused right now. Please order with your server.</p>';
       whereEl = bodyEl.querySelector(".cart-where");
@@ -762,6 +807,15 @@
       notesEl = bodyEl.querySelector("textarea");
       notesEl.value = notes;
       notesEl.addEventListener("input", () => { notes = notesEl.value; pendingId = null; save(); });
+      const phoneEl = bodyEl.querySelector("#cart-phone");
+      if (phoneEl) {
+        phoneEl.value = phone;
+        phoneEl.addEventListener("input", () => {
+          phone = phoneEl.value; pendingId = null;
+          phoneEl.removeAttribute("aria-invalid");
+          try { localStorage.setItem(PHONE_KEY, cleanPhone(phone)); } catch (_) {}
+        });
+      }
     }
     const t = totals();
     const active = activeOrders();
@@ -770,6 +824,7 @@
       + (active.length ? `<button type="button" class="cart-track-link" data-cart-act="status">Earlier order #${esc(active[0].code)}: ${esc(STATUS[active[0].status].label)}. Track it</button>` : ""));
     pausedEl.hidden = !paused || !lines.length;
     bodyEl.querySelector(".cart-notes").hidden = !lines.length;
+    if (bodyEl.querySelector(".cart-phone")) bodyEl.querySelector(".cart-phone").hidden = !lines.length;
     paint(linesEl, lines.length ? lines.map(lineHTML).join("") : '<p class="cart-empty">Your order is empty. Tap “+ Add” on anything you’d like.</p>');
     paint(sumEl, lines.length
       ? `<span>Subtotal</span><span>${money(t.subtotal)}</span>`
@@ -822,6 +877,13 @@
       openGate();
       return;
     }
+    if (billPhone && String(phone).trim() && !phoneOk(phone)) {
+      error = "Please enter a 10-digit mobile number for your bill, or leave it empty.";
+      refresh();
+      const el = bodyEl.querySelector("#cart-phone");
+      if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); }
+      return;
+    }
     sending = true;
     error = "";
     refresh();
@@ -830,7 +892,8 @@
       const { id } = await submitOrder(order);
       sentId = id;
       if (id) {
-        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now(), total: order.total });
+        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now(), total: order.total,
+          items: order.items.map(i => ({ qty: i.qty, name: i.name, variant: i.variant || "", extras: i.extras.map(e => e.name), lineTotal: i.lineTotal })) });
         tracked = tracked.slice(0, 10);
         saveTracked();
         watchTracked();
@@ -885,6 +948,7 @@
     const act = b.dataset.cartAct, key = b.dataset.key;
     const itemEl = b.closest("[data-cart-id]");
 
+    if (act === "bill") { openBill(b.dataset.id); return; }
     if (act === "upi-copy") {
       const done = ok => { b.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { b.textContent = "Copy"; }, 2000); };
       if (navigator.clipboard) navigator.clipboard.writeText(upiId).then(() => done(true), () => done(false));

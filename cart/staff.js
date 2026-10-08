@@ -226,10 +226,36 @@ async function setPaid(id, paid) {
   render();
 }
 
+// "SMS bill": opens this device's Messages app with the guest's number and an itemised bill filled in; staff tap Send.
+// The number is the one the guest gave when ordering, or staff type one in. Needs a phone or tablet with a SIM.
+function billText(o) {
+  const placed = o.placedAt?.toDate ? o.placedAt.toDate() : new Date();
+  const when = placed.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  const lines = (o.items || []).map(i => `${i.qty}x ${i.name}${i.variant ? ` (${i.variant})` : ""} - ${money(i.lineTotal)}`
+    + (i.extras?.length ? `\n   + ${i.extras.map(e => e.name).join(", ")}` : ""));
+  return [`${C.restaurantName} - Bill`, `Order #${o.id.slice(0, 4).toUpperCase()}${o.table ? ` | Table ${o.table}` : ""} | ${when}`, "",
+    ...lines, "", `Total: ${money(o.total)}${o.paid ? " (Paid)" : ""}`, "", `Thank you for visiting ${C.restaurantName}!`]
+    .concat(C.googleReviewUrl ? [`Review us: ${C.googleReviewUrl}`] : []).join("\n");
+}
+function smsBill(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  let n = o.phone || "";
+  if (!n) {
+    const typed = window.prompt("Guest's mobile number (10 digits):", "");
+    if (typed === null) return;
+    n = typed.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  }
+  if (!/^[6-9]\d{9}$/.test(n)) { alertBar("That isn't a 10-digit mobile number."); return; }
+  // "?&body=" works on both Android and iPhone
+  location.href = `sms:+91${n}?&body=${encodeURIComponent(billText(o))}`;
+}
+
 $("#board").addEventListener("click", e => {
   const b = e.target.closest("button[data-act]");
   if (!b) return;
   const id = b.dataset.id;
+  if (b.dataset.act === "sms") { smsBill(id); return; }
   if (b.dataset.act === "paid") setPaid(id, b.getAttribute("aria-pressed") !== "true");
   if (b.dataset.act === "next") { confirmCancel = null; setStatus(id, b.dataset.next); }
   if (b.dataset.act === "cancel") {
@@ -262,6 +288,8 @@ function cardHTML(o) {
     + `<span class="time${waiting ? " late" : ""}" title="${esc(new Date(placed).toLocaleString())}">${clock(new Date(placed))} · ${ago(placed)}</span></div></header>`
     + `<ul class="items">${(o.items || []).map(i => `<li><span class="qty">${esc(i.qty)}×</span><span>${esc(i.name)}${i.variant ? `<em>${esc(i.variant)}</em>` : ""}${i.extras?.length ? `<strong class="extras">+ ${esc(i.extras.map(e => e.name).join(", "))}</strong>` : ""}</span></li>`).join("")}</ul>`
     + (o.notes ? `<p class="notes"><b>Note</b>${esc(o.notes)}</p>` : "")
+    + (o.status === "cancelled" ? "" : `<div class="bill"><span>${o.phone ? `Bill to +91 ${esc(o.phone.slice(0, 5))} ${esc(o.phone.slice(5))}` : "No number given"}</span>`
+      + `<button data-act="sms" data-id="${esc(o.id)}">SMS bill</button></div>`)
     + `<footer><span class="total">${money(o.total)}</span>`
     + (o.status === "cancelled" ? "" : `<button class="paid" data-act="paid" data-id="${esc(o.id)}" aria-pressed="${o.paid === true}"${busy.has(o.id) ? " disabled" : ""}>${o.paid ? "✓ Paid" : "Not paid"}</button>`)
     + `<span class="state">${esc(f.label)}</span></footer>`

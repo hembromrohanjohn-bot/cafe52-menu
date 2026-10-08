@@ -104,6 +104,8 @@ body.has-new .top { background: var(--st-new); }
 .order[data-status="preparing"] .state { background: #FBEFCB; color: #7A5A08; }
 .order[data-status="served"] .state { background: #E6EDD9; color: #3E5226; }
 
+.bill { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--st-muted); }
+.bill button { min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer; border: 1.5px solid var(--st-line); background: none; color: var(--st-ink, inherit); font: 600 13px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; }
 .actions { display: flex; gap: 10px; margin-top: 14px; }
 .actions button { min-height: 54px; border-radius: 14px; cursor: pointer; font: 600 17px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; }
 .actions .go { flex: 1; border: 0; background: var(--st-go); color: #fff; box-shadow: 0 4px 12px rgba(60, 30, 80, .22); }
