@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#8E0F22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="cart/cart.css?v=20261008a">
+<link rel="stylesheet" href="cart/cart.css?v=20261014a">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap">
 <style>
 /* ============================================================
@@ -202,6 +202,13 @@ footer .wordmark { font-size: 48px; margin: 0 0 4px; font-style: normal; text-sh
 .cart-pay-title { color: var(--gold); font-weight: 400; }
 .cart-bill-btn { border-color: var(--gold); color: var(--gold); }
 .cart-phone-in input { color: #fff; }
+.cart-mode { border-color: var(--line); }
+.cart-mode button { font-family: var(--display); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; font-size: 15px; }
+.cart-mode button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 var(--gold); }
+.cart-field input, .cart-field textarea { background: #3A4552; color: #fff; border-color: var(--line); }
+.cart-field input::placeholder, .cart-field textarea::placeholder { color: #AEB8C4; }
+.cart-field input:focus, .cart-field textarea:focus { border-color: var(--gold); }
+.cart-gate-remote { border-color: var(--gold) !important; color: var(--gold) !important; }
 .cart-phone-in input::placeholder { color: #AEB8C4; letter-spacing: 0; font-weight: 400; }
 .cart-pay-app { font-family: var(--sans); border-bottom: 3px solid var(--gold); }
 .cart-pay-id button { border-color: var(--gold); color: var(--gold); }
@@ -454,8 +461,8 @@ window.addEventListener("resize", () => { document.documentElement.style.scrollP
 }
 render();
 </script>
-<script src="config.js?v=20261008b"></script>
-<script src="cart/cart.js?v=20261008a" charset="utf-8"></script>
+<script src="config.js?v=20261014a"></script>
+<script src="cart/cart.js?v=20261014a" charset="utf-8"></script>
 <script src="cart/google-review.js?v=20261007f"></script>
 </body>
 </html>

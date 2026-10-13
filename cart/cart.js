@@ -92,6 +92,13 @@
     served:    { label: "Served",         note: "Enjoy your meal!" },
     cancelled: { label: "Cancelled",      note: "This order was cancelled. Please ask your server." }
   };
+  // Takeaway and delivery orders word a few steps differently
+  const REMOTE_TEXT = {
+    takeaway: { new: "Pay below to confirm. We start your order once your payment arrives.", servedLabel: "Ready", served: "Your order is ready. Please collect it at the counter." },
+    delivery: { new: "Pay below to confirm. We start your order once your payment arrives.", servedLabel: "On its way", served: "Your order is on its way!" }
+  };
+  const stepLabel = (o, s) => s === "served" && REMOTE_TEXT[o.type] ? REMOTE_TEXT[o.type].servedLabel : STATUS[s].label;
+  const stepNote = o => (REMOTE_TEXT[o.type] && (o.status === "served" ? REMOTE_TEXT[o.type].served : o.status === "new" && !o.paid ? REMOTE_TEXT[o.type].new : null)) || STATUS[o.status].note;
   const STEPS = ["new", "accepted", "preparing", "served"];
   const FINAL = ["served", "cancelled"];
   const KEEP_MS = 8 * 3600e3;          // forget orders after 8 hours
@@ -179,7 +186,7 @@
   // "Just look at the menu" first (their order is sent as soon as the code is accepted). It also asks for
   // the table when the link has none. The code is checked with Firebase straight away.
   let gate = null, gateBusy = false, gateError = "", placeAfterGate = false;
-  const gateWanted = () => codeRequired() && !dailyCode;
+  const gateWanted = () => codeRequired() && !dailyCode && !remote();
 
   function openGate(message) {
     gateError = message || "";
@@ -214,6 +221,7 @@
           + '<p id="gate-hint" class="cart-gate-hint">Ask your server for today’s code, or check the card on your table.</p>' : "")
         + '<p id="gate-err" class="cart-ask-err" role="alert"></p>'
         + '<button type="submit" class="cart-primary"></button></form>'
+        + (orderTypes ? '<p class="cart-gate-or">Not at the café?</p><button type="button" class="cart-secondary cart-gate-remote" data-cart-act="gate-remote">Order takeaway or delivery</button>' : "")
         + '<button type="button" class="cart-gate-skip" data-cart-act="gate-skip">Just look at the menu</button>';
       body.querySelector("form").addEventListener("submit", gateSubmit);
     }
@@ -316,7 +324,7 @@
           entry.status = status;
           entry.statusAt = statusAt || Date.now();
           saveTracked();
-          live.textContent = `Order ${entry.code}: ${STATUS[status].label}. ${STATUS[status].note}`;
+          live.textContent = `Order ${entry.code}: ${stepLabel(entry, status)}. ${stepNote(entry)}`;
           refresh();
           document.dispatchEvent(new CustomEvent("cart:orders"));   // e.g. google-review.js offers "Review us on Google" once served
         });
@@ -337,6 +345,28 @@
   // Indian mobile: 10 digits starting 6–9; a typed "+91" or leading 0 is dropped
   const cleanPhone = v => String(v || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
   const phoneOk = v => /^[6-9]\d{9}$/.test(cleanPhone(v));
+
+  // Dine in / Takeaway / Delivery (MENU_CONFIG.orderTypes). A table link means dine-in unless the guest switches;
+  // without one, the choice is remembered on this phone. Takeaway and delivery don't need today's code.
+  const orderTypes = C.orderTypes === true;
+  const DELIVERY_CHARGE = Math.max(0, Number(C.deliveryCharge) || 0);
+  const MODES = { "dine-in": "Dine in", takeaway: "Takeaway", delivery: "Delivery" };
+  const MODE_KEY = "mode:" + (C.restaurantId || location.pathname);
+  const CUST_KEY = "customer:" + (C.restaurantId || location.pathname);
+  let mode = "dine-in";
+  if (orderTypes && !table) try { const m = localStorage.getItem(MODE_KEY); if (MODES[m]) mode = m; } catch (_) {}
+  const remote = () => orderTypes && (mode === "takeaway" || mode === "delivery");
+  let cust = { name: "", address: "", landmark: "" };
+  try { const c = JSON.parse(localStorage.getItem(CUST_KEY) || "{}"); for (const k in cust) if (typeof c[k] === "string") cust[k] = c[k]; } catch (_) {}
+  const saveCust = () => { try { localStorage.setItem(CUST_KEY, JSON.stringify(cust)); } catch (_) {} };
+  function setMode(m) {
+    if (!MODES[m] || m === mode) return;
+    mode = m;
+    pendingId = null;
+    error = "";
+    if (!table) try { localStorage.setItem(MODE_KEY, m); } catch (_) {}
+    refresh();
+  }
 
   function load() {
     try {
@@ -450,7 +480,8 @@
   function totals() {
     const subtotal = lines.reduce((s, l) => s + eachPrice(l) * l.qty, 0);
     const serviceCharge = Math.round(subtotal * servicePct / 100);
-    return { count: lines.reduce((n, l) => n + l.qty, 0), subtotal, serviceCharge, total: subtotal + serviceCharge };
+    const deliveryCharge = remote() && mode === "delivery" && lines.length ? DELIVERY_CHARGE : 0;
+    return { count: lines.reduce((n, l) => n + l.qty, 0), subtotal, serviceCharge, deliveryCharge, total: subtotal + serviceCharge + deliveryCharge };
   }
 
   /* ---------- Placing an order ---------- */
@@ -460,13 +491,17 @@
     const t = totals();
     return {
       restaurant: C.restaurantId,
-      table,
-      ...(codeRequired() ? { code: dailyCode } : {}),
+      table: remote() ? table || "" : table,
+      ...(codeRequired() && !remote() ? { code: dailyCode } : {}),
+      ...(orderTypes ? { type: remote() ? mode : "dine-in" } : {}),
+      ...(remote() ? { name: cust.name.trim().slice(0, 60) } : {}),
+      ...(remote() && mode === "delivery" ? { address: cust.address.trim().slice(0, 300), deliveryCharge: t.deliveryCharge,
+        ...(cust.landmark.trim() ? { landmark: cust.landmark.trim().slice(0, 120) } : {}) } : {}),
       // unitPrice includes the line's add-ons; extras lists them for the kitchen
       items: lines.map(l => ({ id: l.id, name: l.name, variant: l.variant, extras: (l.extras || []).map(e => ({ name: e.name, price: e.price })),
         qty: l.qty, unitPrice: eachPrice(l), lineTotal: eachPrice(l) * l.qty })),
       notes: notes.trim(),
-      ...(billPhone && cleanPhone(phone) ? { phone: cleanPhone(phone) } : {}),
+      ...((billPhone || remote()) && cleanPhone(phone) ? { phone: cleanPhone(phone) } : {}),
       subtotal: t.subtotal,
       serviceCharge: t.serviceCharge,
       total: t.total,
@@ -638,7 +673,7 @@
       const o = active[0];
       barBtn.dataset.cartAct = "status";
       paint(barBtn, `<span class="cart-bar-count">Order #${esc(o.code)}</span><span class="cart-bar-dot" aria-hidden="true">·</span>`
-        + `<span class="cart-bar-status" data-status="${esc(o.status)}">${esc(STATUS[o.status].label)}</span><span class="cart-bar-cta">Track</span>`);
+        + `<span class="cart-bar-status" data-status="${esc(o.status)}">${esc(stepLabel(o, o.status))}</span><span class="cart-bar-cta">Track</span>`);
     }
   }
 
@@ -659,11 +694,12 @@
       ["Paytm", "net.one97.paytm", "paytmmp://pay?"]
     ];
     const href = ([, pkg, iosLink]) => ios ? iosLink + q : `intent://pay?${q}#Intent;scheme=upi;package=${pkg};end`;
-    return `<div class="cart-pay"><p class="cart-pay-title">Pay ${money(o.total)} by UPI</p>`
+    const first = !!REMOTE_TEXT[o.type];
+    return `<div class="cart-pay"><p class="cart-pay-title">Pay ${money(o.total)} ${first ? "now to confirm" : "by UPI"}</p>`
       + `<div class="cart-pay-apps">${apps.map(a => `<a class="cart-pay-app" href="${esc(href(a))}">${esc(a[0])}</a>`).join("")}</div>`
       + `<a class="cart-pay-other" href="${esc("upi://pay?" + q)}">Another UPI app</a>`
       + `<p class="cart-pay-id"><span>UPI ID <b>${esc(upiId)}</b></span><button type="button" data-cart-act="upi-copy">Copy</button></p>`
-      + `<p class="cart-pay-note">Or pay at the counter.</p></div>`;
+      + `<p class="cart-pay-note">${first ? "Paid already? It’ll show here once the café confirms it." : "Or pay at the counter."}</p></div>`;
   }
 
   // An itemised bill for one of this phone's orders, in a dialog the guest can screenshot, save or print
@@ -684,9 +720,10 @@
     const when = new Date(o.at).toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
     billDlg.innerHTML = `<div class="cart-bill-paper"><h2>${esc(C.restaurantName || "Bill")}</h2>`
       + (C.address ? `<p class="cart-bill-addr">${esc(C.address)}</p>` : "")
-      + `<p class="cart-bill-meta"><span>Order #${esc(o.code)}${o.table ? ` · Table ${esc(o.table)}` : ""}</span><span>${esc(when)}</span></p>`
+      + `<p class="cart-bill-meta"><span>Order #${esc(o.code)}${REMOTE_TEXT[o.type] ? ` · ${esc(MODES[o.type])}` : o.table ? ` · Table ${esc(o.table)}` : ""}</span><span>${esc(when)}</span></p>`
       + `<table><tbody>${o.items.map(i => `<tr><td class="q">${esc(i.qty)}×</td><td>${esc(i.name)}${i.variant ? ` (${esc(i.variant)})` : ""}`
         + (i.extras && i.extras.length ? `<small>+ ${esc(i.extras.join(", "))}</small>` : "") + `</td><td class="r">${money(i.lineTotal)}</td></tr>`).join("")}</tbody>`
+      + (o.deliveryCharge ? `<tr><td></td><td>Delivery charge</td><td class="r">${money(o.deliveryCharge)}</td></tr>` : "")
       + `<tfoot><tr><td></td><td>Total</td><td class="r">${money(o.total)}</td></tr></tfoot></table>`
       + `<p class="cart-bill-status${o.paid ? " paid" : ""}">${o.paid ? "✓ Paid" : "Not paid yet"}</p>`
       + `<p class="cart-bill-thanks">Thank you for visiting ${esc(C.restaurantName || "us")}!</p></div>`
@@ -697,15 +734,15 @@
   function trackerHTML(o) {
     const step = STEPS.indexOf(o.status);
     let html = `<div class="cart-track" data-status="${esc(o.status)}"><div class="cart-track-head"><span class="cart-code">Order #${esc(o.code)}</span>`
-      + (o.table ? `<span class="cart-table-pill">Table ${esc(o.table)}</span>` : "") + "</div>";
+      + (REMOTE_TEXT[o.type] ? `<span class="cart-table-pill">${esc(MODES[o.type])}</span>` : o.table ? `<span class="cart-table-pill">Table ${esc(o.table)}</span>` : "") + "</div>";
     if (o.status === "cancelled") html += '<p class="cart-track-cancel">Cancelled</p>';
     else html += '<ol class="cart-steps">' + STEPS.map((s, i) =>
-      `<li class="${i < step ? "done" : i === step ? "now" : ""}"${i === step ? ' aria-current="step"' : ""}><span class="cart-dot" aria-hidden="true"></span>${esc(STATUS[s].label)}</li>`).join("") + "</ol>";
+      `<li class="${i < step ? "done" : i === step ? "now" : ""}"${i === step ? ' aria-current="step"' : ""}><span class="cart-dot" aria-hidden="true"></span>${esc(stepLabel(o, s))}</li>`).join("") + "</ol>";
     let extra = "";
     if (typeof C.trackerExtra === "function") { try { extra = C.trackerExtra(o) || ""; } catch (_) {} }
     const bill = Array.isArray(o.items) && o.items.length && o.status !== "cancelled"
       ? `<button type="button" class="cart-bill-btn" data-cart-act="bill" data-id="${esc(o.id)}">View bill</button>` : "";
-    return html + `<p class="cart-track-note">${esc(STATUS[o.status].note)}</p>${payHTML(o)}${bill}${extra}</div>`;
+    return html + `<p class="cart-track-note">${esc(stepNote(o))}</p>${payHTML(o)}${bill}${extra}</div>`;
   }
 
   function lineHTML(l) {
@@ -795,9 +832,14 @@
       bodyEl.innerHTML = '<div class="cart-where"></div><div class="cart-lines"></div>'
         + '<div class="cart-notes"><label for="cart-notes">Notes for the kitchen <span>(optional)</span></label>'
         + '<textarea id="cart-notes" rows="2" maxlength="300" placeholder="For example: less spicy, no onion"></textarea></div>'
-        + (billPhone ? '<div class="cart-phone"><label for="cart-phone">Mobile number for your bill <span>(optional)</span></label>'
+        + (orderTypes ? '<div class="cart-field cart-for-remote"><label for="cart-name">Your name</label><input id="cart-name" type="text" autocomplete="name" maxlength="60" placeholder="Name for the order"></div>' : "")
+        + (billPhone || orderTypes ? '<div class="cart-phone"><label for="cart-phone"></label>'
           + '<div class="cart-phone-in"><span>+91</span><input id="cart-phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14" placeholder="10-digit mobile number"></div>'
-          + '<small>We’ll text your bill to this number.</small></div>' : "")
+          + '<small></small></div>' : "")
+        + (orderTypes ? '<div class="cart-field cart-for-delivery"><label for="cart-address">Delivery address</label>'
+          + '<textarea id="cart-address" rows="3" maxlength="300" autocomplete="street-address" placeholder="House / flat no., building, street, area"></textarea></div>'
+          + '<div class="cart-field cart-for-delivery"><label for="cart-landmark">Landmark <span>(optional)</span></label>'
+          + '<input id="cart-landmark" type="text" maxlength="120" placeholder="For example: opposite the park"></div>' : "")
         + '<div class="cart-sum"></div>'
         + '<p class="cart-paused-note" hidden>Ordering is paused right now. Please order with your server.</p>';
       whereEl = bodyEl.querySelector(".cart-where");
@@ -807,6 +849,12 @@
       notesEl = bodyEl.querySelector("textarea");
       notesEl.value = notes;
       notesEl.addEventListener("input", () => { notes = notesEl.value; pendingId = null; save(); });
+      [["#cart-name", "name"], ["#cart-address", "address"], ["#cart-landmark", "landmark"]].forEach(([sel, k]) => {
+        const el = bodyEl.querySelector(sel);
+        if (!el) return;
+        el.value = cust[k];
+        el.addEventListener("input", () => { cust[k] = el.value; pendingId = null; el.removeAttribute("aria-invalid"); saveCust(); });
+      });
       const phoneEl = bodyEl.querySelector("#cart-phone");
       if (phoneEl) {
         phoneEl.value = phone;
@@ -819,18 +867,30 @@
     }
     const t = totals();
     const active = activeOrders();
-    paint(whereEl, (table ? `<p class="cart-table-pill">Table ${esc(table)}</p>` : "")
+    paint(whereEl, (orderTypes ? `<div class="cart-mode" role="group" aria-label="How would you like your order?">`
+        + Object.entries(MODES).map(([k, v]) => `<button type="button" data-cart-act="mode" data-mode="${k}" aria-pressed="${mode === k}">${v}</button>`).join("") + "</div>" : "")
+      + (table && !remote() ? `<p class="cart-table-pill">Table ${esc(table)}</p>` : "")
+      + (remote() && mode === "delivery" && DELIVERY_CHARGE ? `<p class="cart-hint">Delivery charge: ${money(DELIVERY_CHARGE)}.</p>` : "")
       + (reviewHint ? `<p class="cart-hint cart-review-hint">${esc(reviewHint)}</p>` : "")
-      + (active.length ? `<button type="button" class="cart-track-link" data-cart-act="status">Earlier order #${esc(active[0].code)}: ${esc(STATUS[active[0].status].label)}. Track it</button>` : ""));
+      + (active.length ? `<button type="button" class="cart-track-link" data-cart-act="status">Earlier order #${esc(active[0].code)}: ${esc(stepLabel(active[0], active[0].status))}. Track it</button>` : ""));
     pausedEl.hidden = !paused || !lines.length;
     bodyEl.querySelector(".cart-notes").hidden = !lines.length;
-    if (bodyEl.querySelector(".cart-phone")) bodyEl.querySelector(".cart-phone").hidden = !lines.length;
+    const phoneBox = bodyEl.querySelector(".cart-phone");
+    if (phoneBox) {
+      phoneBox.hidden = !lines.length || (!billPhone && !remote());
+      phoneBox.querySelector("label").innerHTML = remote() ? "Mobile number" : "Mobile number for your bill <span>(optional)</span>";
+      phoneBox.querySelector("small").textContent = remote() ? "We’ll call you if we need to, and text your bill." : "We’ll text your bill to this number.";
+    }
+    bodyEl.querySelectorAll(".cart-for-remote").forEach(el => { el.hidden = !lines.length || !remote(); });
+    bodyEl.querySelectorAll(".cart-for-delivery").forEach(el => { el.hidden = !lines.length || !(remote() && mode === "delivery"); });
     paint(linesEl, lines.length ? lines.map(lineHTML).join("") : '<p class="cart-empty">Your order is empty. Tap “+ Add” on anything you’d like.</p>');
     paint(sumEl, lines.length
       ? `<span>Subtotal</span><span>${money(t.subtotal)}</span>`
         + (servicePct ? `<span>Service charge (${servicePct}%)</span><span>${money(t.serviceCharge)}</span>` : "")
-        + `<span class="cart-grand">Estimated total</span><span class="cart-grand">${money(t.total)}</span>`
-        + '<p class="cart-fine">Taxes apply. Your final bill comes from the restaurant.</p>'
+        + (t.deliveryCharge ? `<span>Delivery</span><span>${money(t.deliveryCharge)}</span>` : "")
+        + `<span class="cart-grand">${remote() ? "Total" : "Estimated total"}</span><span class="cart-grand">${money(t.total)}</span>`
+        + (remote() ? '<p class="cart-fine">After you place the order, pay by UPI. We start making it once your payment arrives.</p>'
+          : '<p class="cart-fine">Taxes apply. Your final bill comes from the restaurant.</p>')
       : "");
     paint(footEl, (error ? `<p class="cart-error" role="alert">${esc(error)}</p>` : "")
       + `<button type="button" class="cart-primary" data-cart-act="place"${!lines.length || sending || paused ? " disabled" : ""}>${sending ? "Sending…" : paused ? "Ordering is paused" : lines.length ? `Place order · ${money(t.total)}` : "Place order"}</button>`);
@@ -871,13 +931,18 @@
 
   async function place() {
     if (sending || !lines.length || paused) return;
-    if (!table || (codeRequired() && !dailyCode)) {
+    if (remote()) {
+      const bad = (sel, msg) => { error = msg; refresh(); const el = bodyEl.querySelector(sel); if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); } };
+      if (!cust.name.trim()) return bad("#cart-name", "Please enter your name.");
+      if (!phoneOk(phone)) return bad("#cart-phone", "Please enter your 10-digit mobile number.");
+      if (mode === "delivery" && cust.address.trim().length < 5) return bad("#cart-address", "Please enter your delivery address.");
+    } else if (!table || (codeRequired() && !dailyCode)) {
       // Missing the table or today's code: the welcome screen asks, then sends this order
       placeAfterGate = true;
       openGate();
       return;
     }
-    if (billPhone && String(phone).trim() && !phoneOk(phone)) {
+    if (!remote() && billPhone && String(phone).trim() && !phoneOk(phone)) {
       error = "Please enter a 10-digit mobile number for your bill, or leave it empty.";
       refresh();
       const el = bodyEl.querySelector("#cart-phone");
@@ -892,7 +957,7 @@
       const { id } = await submitOrder(order);
       sentId = id;
       if (id) {
-        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now(), total: order.total,
+        tracked.unshift({ id, code: id.slice(0, 4).toUpperCase(), table: order.table, at: Date.now(), status: "new", statusAt: Date.now(), total: order.total, type: order.type || "dine-in", deliveryCharge: order.deliveryCharge || 0,
           items: order.items.map(i => ({ qty: i.qty, name: i.name, variant: i.variant || "", extras: i.extras.map(e => e.name), lineTotal: i.lineTotal })) });
         tracked = tracked.slice(0, 10);
         saveTracked();
@@ -906,7 +971,7 @@
       bodyEl.innerHTML = "";
     } catch (err) {
       console.error("[cart] Order was not sent:", err);
-      if (err && err.code === "permission-denied" && codeRequired() && !paused) {
+      if (err && err.code === "permission-denied" && codeRequired() && !paused && !remote()) {
         // Firebase refused it: the code is wrong or has changed since this phone saved it
         rememberCode(null);
         error = "";
@@ -949,6 +1014,14 @@
     const itemEl = b.closest("[data-cart-id]");
 
     if (act === "bill") { openBill(b.dataset.id); return; }
+    if (act === "mode") { setMode(b.dataset.mode); return; }
+    if (act === "gate-remote") {
+      placeAfterGate = false;
+      if (!remote()) setMode("takeaway");
+      closeGate();
+      live.textContent = "Ordering takeaway or delivery. Choose which when you view your order.";
+      return;
+    }
     if (act === "upi-copy") {
       const done = ok => { b.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { b.textContent = "Copy"; }, 2000); };
       if (navigator.clipboard) navigator.clipboard.writeText(upiId).then(() => done(true), () => done(false));

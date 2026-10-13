@@ -25,6 +25,13 @@ window.MENU_CONFIG = {
   // to be published first, or orders with a number are refused.
   billPhone: true,
 
+  // Dine in / Takeaway / Delivery. Dine-in needs the table and today's code as before. Takeaway and delivery can be
+  // ordered from anywhere with the menu link (no code), need a name and mobile number (delivery also an address),
+  // and are paid first by UPI: the staff screen won't accept them until they're marked Paid.
+  // Needs the takeaway/delivery rule in firestore.rules published first.
+  orderTypes: false,
+  deliveryCharge: 50,            // added to delivery orders
+
   upi: { id: "paytmqr61mzr3@ptys", name: "Café 52" },
 
   // "Post on Google" after a guest rates their food. Best: the "Ask for reviews" link from Google Business Profile

@@ -233,8 +233,8 @@ function billText(o) {
   const when = placed.toLocaleString(C.locale || "en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
   const lines = (o.items || []).map(i => `${i.qty}x ${i.name}${i.variant ? ` (${i.variant})` : ""} - ${money(i.lineTotal)}`
     + (i.extras?.length ? `\n   + ${i.extras.map(e => e.name).join(", ")}` : ""));
-  return [`${C.restaurantName} - Bill`, `Order #${o.id.slice(0, 4).toUpperCase()}${o.table ? ` | Table ${o.table}` : ""} | ${when}`, "",
-    ...lines, "", `Total: ${money(o.total)}${o.paid ? " (Paid)" : ""}`, "", `Thank you for visiting ${C.restaurantName}!`]
+  return [`${C.restaurantName} - Bill`, `Order #${o.id.slice(0, 4).toUpperCase()}${KIND[o.type] ? ` | ${KIND[o.type].label}` : o.table ? ` | Table ${o.table}` : ""} | ${when}`, "",
+    ...lines, ...(o.deliveryCharge ? [`Delivery charge - ${money(o.deliveryCharge)}`] : []), "", `Total: ${money(o.total)}${o.paid ? " (Paid)" : ""}`, "", `Thank you for visiting ${C.restaurantName}!`]
     .concat(C.googleReviewUrl ? [`Review us: ${C.googleReviewUrl}`] : []).join("\n");
 }
 function smsBill(id) {
@@ -275,22 +275,38 @@ const ago = ms => {
   return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`;
 };
 
+// Takeaway and delivery (MENU_CONFIG.orderTypes): paid first by UPI, so they can't be accepted until marked Paid
+const KIND = {
+  takeaway: { label: "Takeaway", served: "Ready", button: "Ready for pickup" },
+  delivery: { label: "Delivery", served: "Out for delivery", button: "Out for delivery" }
+};
+
 function cardHTML(o) {
   const placed = o.placedAt?.toMillis ? o.placedAt.toMillis() : Date.now();
-  const f = FLOW[o.status] || FLOW.new;
+  const kind = KIND[o.type];
+  const f0 = FLOW[o.status] || FLOW.new;
+  const f = kind ? { ...f0, label: o.status === "served" ? kind.served : f0.label, button: o.status === "preparing" ? kind.button : f0.button } : f0;
+  const waitPay = kind && !o.paid && o.status === "new";
   const waiting = o.status === "new" && Date.now() - placed > 5 * 60e3;
   let actions = "";
-  if (f.next) actions += `<button class="go" data-act="next" data-id="${esc(o.id)}" data-next="${f.next}"${busy.has(o.id) ? " disabled" : ""}>${busy.has(o.id) ? "Saving…" : f.button}</button>`;
+  if (f.next) actions += waitPay
+    ? `<button class="go" disabled>Waiting for payment</button>`
+    : `<button class="go" data-act="next" data-id="${esc(o.id)}" data-next="${f.next}"${busy.has(o.id) ? " disabled" : ""}>${busy.has(o.id) ? "Saving…" : f.button}</button>`;
   if (o.status === "new" || o.status === "accepted")
     actions += `<button class="cancel${confirmCancel === o.id ? " confirm" : ""}" data-act="cancel" data-id="${esc(o.id)}"${busy.has(o.id) ? " disabled" : ""}>${confirmCancel === o.id ? "Tap again to cancel" : "Cancel"}</button>`;
   return `<article class="order" data-status="${esc(o.status)}" data-id="${esc(o.id)}">`
-    + `<header><div class="table"><small>Table</small><b>${esc(o.table || "?")}</b></div><div class="meta"><span class="code">#${esc(o.id.slice(0, 4).toUpperCase())}</span>`
+    + `<header>${kind ? `<div class="table kind"><small>${o.table ? `Table ${esc(o.table)}` : "Order"}</small><b>${kind.label}</b></div>` : `<div class="table"><small>Table</small><b>${esc(o.table || "?")}</b></div>`}<div class="meta"><span class="code">#${esc(o.id.slice(0, 4).toUpperCase())}</span>`
     + `<span class="time${waiting ? " late" : ""}" title="${esc(new Date(placed).toLocaleString())}">${clock(new Date(placed))} · ${ago(placed)}</span></div></header>`
     + `<ul class="items">${(o.items || []).map(i => `<li><span class="qty">${esc(i.qty)}×</span><span>${esc(i.name)}${i.variant ? `<em>${esc(i.variant)}</em>` : ""}${i.extras?.length ? `<strong class="extras">+ ${esc(i.extras.map(e => e.name).join(", "))}</strong>` : ""}</span></li>`).join("")}</ul>`
     + (o.notes ? `<p class="notes"><b>Note</b>${esc(o.notes)}</p>` : "")
+    + (kind ? `<div class="cust"><b>${esc(o.name || "")}</b>${o.phone ? ` · <a href="tel:+91${esc(o.phone)}">+91 ${esc(o.phone.slice(0, 5))} ${esc(o.phone.slice(5))}</a>` : ""}`
+      + (o.address ? `<p>${esc(o.address)}${o.landmark ? `<br><small>Landmark: ${esc(o.landmark)}</small>` : ""}</p>`
+        + `<a class="map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address + (o.landmark ? ", " + o.landmark : "") + ", Pune")}" target="_blank" rel="noopener">Open in Maps</a>` : "")
+      + "</div>" : "")
+    + (waitPay ? `<p class="paywait">Pay-first order: check the UPI payment arrived, then tap <b>Not paid</b> to mark it Paid.</p>` : "")
     + (o.status === "cancelled" ? "" : `<div class="bill"><span>${o.phone ? `Bill to +91 ${esc(o.phone.slice(0, 5))} ${esc(o.phone.slice(5))}` : "No number given"}</span>`
       + `<button data-act="sms" data-id="${esc(o.id)}">SMS bill</button></div>`)
-    + `<footer><span class="total">${money(o.total)}</span>`
+    + `<footer><span class="total">${money(o.total)}${o.deliveryCharge ? `<small> incl. ${money(o.deliveryCharge)} delivery</small>` : ""}</span>`
     + (o.status === "cancelled" ? "" : `<button class="paid" data-act="paid" data-id="${esc(o.id)}" aria-pressed="${o.paid === true}"${busy.has(o.id) ? " disabled" : ""}>${o.paid ? "✓ Paid" : "Not paid"}</button>`)
     + `<span class="state">${esc(f.label)}</span></footer>`
     + (actions ? `<div class="actions">${actions}</div>` : "")

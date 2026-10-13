@@ -104,6 +104,14 @@ body.has-new .top { background: var(--st-new); }
 .order[data-status="preparing"] .state { background: #FBEFCB; color: #7A5A08; }
 .order[data-status="served"] .state { background: #E6EDD9; color: #3E5226; }
 
+.table.kind b { font-size: 22px; line-height: 1.2; }
+.cust { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #EEF3FB; color: #1F2D44; font-size: 15px; }
+.cust a { color: #1F4FA3; font-weight: 600; text-decoration: none; }
+.cust p { margin: 6px 0 0; line-height: 1.4; }
+.cust small { color: #4A5A73; }
+.cust .map { display: inline-block; margin-top: 6px; font-size: 14px; }
+.paywait { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: #FFF1D6; color: #6B4A08; font-size: 14.5px; }
+.total small { font: 400 13px var(--st-font); letter-spacing: 0; color: var(--st-muted); }
 .bill { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--st-muted); }
 .bill button { min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer; border: 1.5px solid var(--st-line); background: none; color: var(--st-ink, inherit); font: 600 13px var(--st-font-strong); letter-spacing: .1em; text-transform: uppercase; }
 .actions { display: flex; gap: 10px; margin-top: 14px; }

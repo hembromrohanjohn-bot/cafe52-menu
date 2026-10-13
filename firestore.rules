@@ -36,21 +36,42 @@ service cloud.firestore {
     }
 
     match /restaurants/{rid}/orders/{orderId} {
-      // Guests: place a new order. Only well-formed orders for a known restaurant, with today's code,
-      // while ordering isn't paused, get in.
+      // Guests: place a new order. Only well-formed orders for a known restaurant, while ordering isn't paused, get in:
+      // dine-in with today's code, or takeaway / delivery with the guest's details.
       allow create: if rid in staffEmails()
         && orderingOpen(rid)
-        && request.resource.data.keys().hasAll(['restaurant', 'table', 'code', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
-        && request.resource.data.keys().hasOnly(['restaurant', 'table', 'code', 'items', 'notes', 'phone', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
-        // optional Indian mobile number for the bill (10 digits, starting 6–9)
+        && request.resource.data.keys().hasAll(['restaurant', 'table', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
+        && request.resource.data.keys().hasOnly(['restaurant', 'table', 'code', 'type', 'name', 'phone', 'address', 'landmark', 'deliveryCharge', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
+        && (
+          // Dine-in: at a table, with today's code
+          ((!('type' in request.resource.data) || request.resource.data.type == 'dine-in')
+            && request.resource.data.code is string
+            && codeOk(rid, request.resource.data.code)
+            && request.resource.data.table is string
+            && request.resource.data.table.matches('^[A-Z]{0,3}[0-9]{1,4}$'))
+          ||
+          // Takeaway / delivery: from anywhere, no code, but a name and mobile number (delivery also an address).
+          // They're paid first by UPI, and staff only accept them once paid.
+          (request.resource.data.type in ['takeaway', 'delivery']
+            && request.resource.data.name is string
+            && request.resource.data.name.size() > 0
+            && request.resource.data.name.size() <= 60
+            && 'phone' in request.resource.data
+            && request.resource.data.table is string
+            && request.resource.data.table.matches('^([A-Z]{0,3}[0-9]{1,4})?$')
+            && (request.resource.data.type == 'takeaway'
+              || (request.resource.data.address is string
+                && request.resource.data.address.size() >= 5
+                && request.resource.data.address.size() <= 300)))
+        )
+        // optional Indian mobile number (10 digits, starting 6–9); required above for takeaway / delivery
         && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.matches('^[6-9][0-9]{9}$')))
-        && request.resource.data.code is string
-        && codeOk(rid, request.resource.data.code)
+        && (!('address' in request.resource.data) || (request.resource.data.address is string && request.resource.data.address.size() <= 300))
+        && (!('landmark' in request.resource.data) || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 120))
+        && (!('deliveryCharge' in request.resource.data) || (request.resource.data.deliveryCharge is number && request.resource.data.deliveryCharge >= 0 && request.resource.data.deliveryCharge < 1000))
         && request.resource.data.restaurant == rid
         && request.resource.data.status == 'new'
         && request.resource.data.placedAt == request.time
-        && request.resource.data.table is string
-        && request.resource.data.table.matches('^[A-Z]{0,3}[0-9]{1,4}$')
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
         && request.resource.data.items.size() <= 60

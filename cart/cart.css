@@ -164,6 +164,19 @@ html.cart-has-bar body { padding-bottom: calc(84px + env(safe-area-inset-bottom,
 .cart-track-cancel { margin: 14px 0 0; text-align: center; font-weight: 700; font-size: 17px; color: #8A1C0C; }
 .cart-track-link { display: block; margin: 10px 0 0; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 14px; color: var(--cart-ink, #222); text-decoration: underline; text-underline-offset: 3px; text-align: left; }
 .cart-bar-status { font-variant-numeric: normal; }
+/* Dine in / Takeaway / Delivery (MENU_CONFIG.orderTypes) */
+.cart-mode { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 0 0 12px; border-radius: 14px; border: 1.5px solid var(--cart-line, #ccc); }
+.cart-mode button { min-height: 42px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 14.5px; color: var(--cart-muted, #666); }
+.cart-mode button[aria-pressed="true"] { background: var(--cart-accent, #222); color: var(--cart-accent-ink, #fff); }
+.cart-field { padding: 12px 0 4px; }
+.cart-field[hidden] { display: none !important; }
+.cart-field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14.5px; }
+.cart-field label span { font-weight: 400; color: var(--cart-muted, #666); }
+.cart-field input, .cart-field textarea { display: block; width: 100%; box-sizing: border-box; min-height: 46px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--cart-line, #ccc); font: 16px/1.4 var(--cart-font, inherit); resize: vertical; }
+.cart-field input:focus, .cart-field textarea:focus { outline: none; border-color: var(--cart-accent, #222); }
+.cart-field [aria-invalid="true"] { border-color: #D2452F; }
+.cart-gate-or { margin: 18px 0 6px; text-align: center; font-size: 14px; color: var(--cart-muted, #666); }
+.cart-gate-remote { width: 100%; }
 /* Mobile number for the bill (MENU_CONFIG.billPhone) */
 .cart-phone { padding: 12px 0 4px; }
 .cart-phone[hidden] { display: none !important; }
