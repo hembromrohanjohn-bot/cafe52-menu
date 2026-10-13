@@ -29,7 +29,7 @@ window.MENU_CONFIG = {
   // ordered from anywhere with the menu link (no code), need a name and mobile number (delivery also an address),
   // and are paid first by UPI: the staff screen won't accept them until they're marked Paid.
   // Needs the takeaway/delivery rule in firestore.rules published first.
-  orderTypes: false,
+  orderTypes: true,
   deliveryCharge: 50,            // added to delivery orders
 
   upi: { id: "paytmqr61mzr3@ptys", name: "Café 52" },
