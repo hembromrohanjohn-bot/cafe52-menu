@@ -11,7 +11,7 @@ window.MENU_CONFIG = {
   orderWebhookUrl: "",          // only used when firebase (below) isn't set
   soldOut: [],                  // dish names that can't be ordered today, e.g. ["Chicken 65"]
   menuSelector: "#pages",       // where the menu items are rendered
-  dailyCode: true,              // guests need today's 4-digit code (shown on the staff screen) to order
+  dailyCode: false,             // no daily code (removed 2026-10-14): table QR guests order straight away
   dailyCodeResetHour: 5,        // a new code is made automatically at 5 am each day
   getItem: id => cartItem(id),  // lets the cart re-check a saved order against today's menu
   getExtras: id => addonsFor(id),  // add-ons for a dish ("Customise"); index.html reads them from menu-data.js ADDONS
