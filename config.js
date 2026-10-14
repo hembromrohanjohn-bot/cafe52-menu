@@ -3,7 +3,7 @@
 window.MENU_CONFIG = {
   restaurantId: "cafe52",
   restaurantName: "Café 52",
-  address: "Shop 41/42, Kumar Plaza, MG Road, Fashion Street, Camp, Pune 411001",   // printed on the bill
+  address: "Convent St, Sadar Bazaar, Pune, Maharashtra 411001",   // printed on the bill
   currency: "₹",
   locale: "en-IN",
   serviceChargePercent: 0,
@@ -38,7 +38,7 @@ window.MENU_CONFIG = {
   // (looks like https://g.page/r/XXXX/review), which opens the review box directly. Until it's set, Google Maps opens
   // on the search below and guests tap "Write a review".
   googleReviewUrl: "https://g.page/r/Cb1JARiFiwFTEAE/review",
-  googlePlaceQuery: "Café 52, Shop No. 41/42 Kumar Plaza co-op society MG road, Fashion St, Pune, Maharashtra 411001",
+  googlePlaceQuery: "Café 52, Convent St, Sadar Bazaar, Pune, Maharashtra 411001",
 
   // Orders are saved to Café 52's own Firebase project, and the staff screen reads them.
   // These values are meant to be public; the Firestore security rules decide who can read and change orders.
