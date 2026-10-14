@@ -37,16 +37,14 @@ service cloud.firestore {
 
     match /restaurants/{rid}/orders/{orderId} {
       // Guests: place a new order. Only well-formed orders for a known restaurant, while ordering isn't paused, get in:
-      // dine-in with today's code, or takeaway / delivery with the guest's details.
+      // dine-in at a table, or takeaway / delivery with the guest's details.
       allow create: if rid in staffEmails()
         && orderingOpen(rid)
         && request.resource.data.keys().hasAll(['restaurant', 'table', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
         && request.resource.data.keys().hasOnly(['restaurant', 'table', 'code', 'type', 'name', 'phone', 'address', 'landmark', 'deliveryCharge', 'items', 'notes', 'subtotal', 'serviceCharge', 'total', 'createdAt', 'placedAt', 'status'])
         && (
-          // Dine-in: at a table, with today's code
+          // Dine-in: at a table. (The daily code was dropped on 2026-10-14; older phones may still send one, which is ignored.)
           ((!('type' in request.resource.data) || request.resource.data.type == 'dine-in')
-            && request.resource.data.code is string
-            && codeOk(rid, request.resource.data.code)
             && request.resource.data.table is string
             && request.resource.data.table.matches('^[A-Z]{0,3}[0-9]{1,4}$'))
           ||

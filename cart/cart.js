@@ -186,7 +186,8 @@
   // "Just look at the menu" first (their order is sent as soon as the code is accepted). It also asks for
   // the table when the link has none. The code is checked with Firebase straight away.
   let gate = null, gateBusy = false, gateError = "", placeAfterGate = false;
-  const gateWanted = () => codeRequired() && !dailyCode && !remote();
+  // Also shown when the link has no table and the guest hasn't chosen takeaway/delivery, so they can pick
+  const gateWanted = () => !remote() && ((codeRequired() && !dailyCode) || (orderTypes && !table));
 
   function openGate(message) {
     gateError = message || "";

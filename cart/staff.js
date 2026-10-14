@@ -147,7 +147,7 @@ async function ensureCode(force = false) {
 }
 
 function listenToday() {
-  if (C.dailyCode === false) $(".today-code").hidden = true;
+  if (C.dailyCode === false) { $(".today-code").hidden = true; $("#new-code").hidden = true; }
   stopExtras.push(onSnapshot(accessRef, snap => {
     access = snap.exists() ? snap.data() : null;
     paintToday();
